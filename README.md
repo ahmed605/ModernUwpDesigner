@@ -2,6 +2,11 @@
 
 Modern UWP Designer is a Visual Studio extension that adds XAML Designer support for modern UWP .NET 9+ projects.
 
+### Installation
+
+[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/AhmedWalid.ModernUwpDesigner?include_prereleases&label=Modern%20UWP%20Designer&style=for-the-badge&color=blue&link=https%3A%2F%2Fmarketplace.visualstudio.com%2Fitems%3FitemName%3DAhmedWalid.ModernUwpDesigner)](https://marketplace.visualstudio.com/items?itemName=AhmedWalid.ModernUwpDesigner)
+
+
 ### Current Limitations
 
 - Currently only works on .NET 10+ projects (this limitation is temporary and will be resolved in future updates to expand the support to .NET 9 projects)
@@ -15,4 +20,4 @@ Modern UWP Designer is a Visual Studio extension that adds XAML Designer support
 
 - `<SkipXamlDesignerSdkCheck>true</SkipXamlDesignerSdkCheck>` MSBuild property to skip the OS build check for the designer, allowing it to be used on older OS builds than the project SDK version
 
-<img width="1600" height="788" alt="image" src="https://github.com/user-attachments/assets/d99f9e55-aa38-4128-8657-d6e4d04fe517" />
+<img alt="image" src="https://github.com/user-attachments/assets/d99f9e55-aa38-4128-8657-d6e4d04fe517" />

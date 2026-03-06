@@ -4,6 +4,7 @@
         <Identity Id="ModernUwpDesigner.5fd8081f-8018-4306-b04a-3df569e8e18d" Version="1.0" Language="en-US" Publisher="Ahmed Walid" />
         <DisplayName>Modern UWP Designer</DisplayName>
         <Description xml:space="preserve">Provides XAML Designer support for Modern UWP .NET 9+ projects</Description>
+        <License>LICENSE.txt</License>
         <Tags>XAML, UWP, WinRT, Designer</Tags>
         <Preview>true</Preview>
     </Metadata>
@@ -12,9 +13,18 @@
             <ProductArchitecture>amd64</ProductArchitecture>
         </InstallationTarget>
         <InstallationTarget Version="[17.0,)" Id="Microsoft.VisualStudio.Community">
-            <ProductArchitecture>x86</ProductArchitecture>
+            <ProductArchitecture>arm64</ProductArchitecture>
         </InstallationTarget>
-        <InstallationTarget Version="[17.0,)" Id="Microsoft.VisualStudio.Community">
+        <InstallationTarget Version="[17.0,)" Id="Microsoft.VisualStudio.Pro">
+            <ProductArchitecture>amd64</ProductArchitecture>
+        </InstallationTarget>
+        <InstallationTarget Version="[17.0,)" Id="Microsoft.VisualStudio.Pro">
+            <ProductArchitecture>arm64</ProductArchitecture>
+        </InstallationTarget>
+        <InstallationTarget Version="[17.0,)" Id="Microsoft.VisualStudio.Enterprise">
+            <ProductArchitecture>amd64</ProductArchitecture>
+        </InstallationTarget>
+        <InstallationTarget Version="[17.0,)" Id="Microsoft.VisualStudio.Enterprise">
             <ProductArchitecture>arm64</ProductArchitecture>
         </InstallationTarget>
     </Installation>
