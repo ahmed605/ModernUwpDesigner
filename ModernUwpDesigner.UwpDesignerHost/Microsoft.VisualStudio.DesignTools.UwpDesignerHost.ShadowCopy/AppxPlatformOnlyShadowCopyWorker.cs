@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.DesignTools.DesignerContract;
+using Microsoft.VisualStudio.DesignTools.DesignerHost.HostServices;
+using Microsoft.VisualStudio.DesignTools.DesignerHost.Platform;
 using Microsoft.VisualStudio.DesignTools.DesignerHost.ShadowCopy;
 using Microsoft.VisualStudio.DesignTools.DesignerHost.Utility;
 using Microsoft.VisualStudio.DesignTools.Utility;
@@ -13,6 +9,14 @@ using Microsoft.VisualStudio.DesignTools.Utility.IO;
 using Microsoft.VisualStudio.DesignTools.UwpDesignerHost.AppPackage;
 using Microsoft.VisualStudio.DesignTools.UwpDesignerHost.Utility;
 using Microsoft.VisualStudio.DesignTools.Xaml.LanguageService;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.DesignTools.UwpDesignerHost.ShadowCopy;
 
@@ -37,7 +41,7 @@ internal sealed class AppxPlatformOnlyShadowCopyWorker : UwpHostShadowCopyWorker
 		return true;
 	}
 
-	public override Task CopyProjectContentAsync(CancellationToken cancelToken)
+	public override unsafe Task CopyProjectContentAsync(CancellationToken cancelToken)
 	{
 		return Task.Run(delegate
 		{
@@ -51,6 +55,29 @@ internal sealed class AppxPlatformOnlyShadowCopyWorker : UwpHostShadowCopyWorker
 					base.SurfaceInfo.ShadowCacheContent.AddItem(text, Path.GetFileName(text));
 				}
 			}
+
+			// TODO: probably also need to check if the project is executable but has no publish profiles?
+			if (!HostProject.IsExecutable && HostProject is HostProject hostProject)
+			{
+				var GetReferenceResolver = (delegate*<HostProject, ReferenceResolver>)typeof(HostProject).GetProperty("ReferenceResolver",
+					System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+						.GetGetMethod(true).MethodHandle.GetFunctionPointer();
+
+                if (GetReferenceResolver(hostProject) is DTEReferenceResolver resolver)
+				{
+					var refs = resolver.References.Where(x => x.CopyLocal is not false);
+					foreach (var reference in refs)
+					{
+						cancelToken.ThrowIfCancellationRequested();
+
+						var path = reference.Path.LocalPath;
+                        base.SurfaceInfo.ShadowCacheContent.AddItem(path, Path.GetFileName(path));
+                    }
+                }
+
+                SurfaceInfo.ShadowCacheContent.CacheFileFromText(Path.Combine(SurfaceInfo.ShadowCacheContent.ShadowCacheFolder, "UserApplicationInfo.txt"), GetApplicationActivationArguments());
+            }
+
 			TrackProjectItems(base.SurfaceInfo.ShadowCacheContent, base.HostProject, cancelToken);
 			base.SurfaceInfo.ShadowCacheContent.SyncFolder(cancelToken);
 			if (string.IsNullOrEmpty(base.SurfaceInfo.FrameworkRuntimeVersion) && base.SurfaceInfo.ShadowCacheContent != null)
@@ -61,7 +88,16 @@ internal sealed class AppxPlatformOnlyShadowCopyWorker : UwpHostShadowCopyWorker
 		});
 	}
 
-	private void UpdateDependencies(CancellationToken cancelToken)
+    private string GetApplicationActivationArguments()
+    {
+        if (!string.IsNullOrEmpty(HostProject.TargetAssemblyPath) && File.Exists(HostProject.TargetAssemblyPath) && !string.IsNullOrEmpty(HostProject.DefaultNamespaceName))
+        {
+            return string.Format(CultureInfo.InvariantCulture, "{0};{1};{2}", ProjectNameHelper.GetSafeProjectName(HostProject.ProjectName), AssemblyName.GetAssemblyName(HostProject.TargetAssemblyPath).FullName, HostProject.DefaultNamespaceName);
+        }
+        return string.Empty;
+    }
+
+    private void UpdateDependencies(CancellationToken cancelToken)
 	{
 		cancelToken.ThrowIfCancellationRequested();
 		string manifestPath = base.SurfaceInfo.ShadowCacheContent.FindCachedItem("AppxManifest.xml");

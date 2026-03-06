@@ -44,8 +44,6 @@ namespace XSurfUwp
 
         private bool metaDataRetrieveAttempted;
 
-        private bool dispatcherInitialized;
-
         public new static Application Current => (Application)Windows.UI.Xaml.Application.Current;
 
         internal ContentWrapper ContentWrapper => (ContentWrapper)Window.Current.Content;
@@ -351,11 +349,11 @@ namespace XSurfUwp
                 return;
             }
             string className = userApplicationInfo.UserApplicationRootNamespace + "." + userApplicationInfo.UserApplicationProjectName + "_XamlTypeInfo.XamlMetaDataProvider";
-            xamlMetadataProvider = LoadUserAppIXMP(className);
+            xamlMetadataProvider = LoadUserAppIXMP(userApplicationInfo.UserApplicationFullAssemblyName, className);
             if (xamlMetadataProvider == null)
             {
                 string className2 = userApplicationInfo.UserApplicationRootNamespace + ".XamlMetaDataProvider";
-                xamlMetadataProvider = LoadUserAppIXMP(className2);
+                xamlMetadataProvider = LoadUserAppIXMP(userApplicationInfo.UserApplicationFullAssemblyName, className2);
                 if (xamlMetadataProvider == null)
                 {
                     string typeName = userApplicationInfo.UserApplicationRootNamespace + "." + userApplicationInfo.UserApplicationProjectName + "_XamlTypeInfo.XamlTypeInfoProvider";
@@ -364,7 +362,7 @@ namespace XSurfUwp
             }
         }
 
-        private IXamlMetadataProvider LoadUserAppIXMP(string className)
+        private IXamlMetadataProvider LoadUserAppIXMP(string assemblyName, string className)
         {
 #nullable disable
             object instance = null;
@@ -377,7 +375,7 @@ namespace XSurfUwp
             }
             catch
             {
-                return null;
+                return (IXamlMetadataProvider)LoadUserAppIXMPReflection(assemblyName, className);
             }
 #nullable restore
         }

@@ -50,6 +50,7 @@ internal class PriCleaner : IXmlCleanerContext
 		{
 			return XmlTagChange.Remove;
 		}
-		return XmlTagChange.None;
+
+        return XmlTagChange.None;
 	}
 }

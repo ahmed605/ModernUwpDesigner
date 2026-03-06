@@ -115,7 +115,25 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" NoWarn="NU1604" />
+    <!--PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" NoWarn="NU1604" /-->
+    
+    <Reference Include="Microsoft.VisualStudio.Shell">
+      <Private>false</Private>
+      <HintPath>$(VsInstallRoot)\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Shell.15.0.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop">
+      <Private>false</Private>
+      <HintPath>$(VsInstallRoot)\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Shell.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Framework">
+      <Private>false</Private>
+      <HintPath>$(VsInstallRoot)\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Shell.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Threading">
+      <Private>false</Private>
+      <HintPath>$(VsInstallRoot)\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Threading.17.x\Microsoft.VisualStudio.Threading.dll</HintPath>
+    </Reference>
+      
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2094" NoWarn="NU1604" />
     <Reference Include="Microsoft.VisualStudio.DesignTools.DesignerHost">
       <Private>false</Private>
@@ -174,21 +192,21 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
   </ItemGroup>-->
-	
+    
   <ItemGroup>
     <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x64\publish\AppxManifest.xml">
       <Link>XSurfUwp\x64\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\AppxManifest.xml">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\AppxManifest.xml">
       <Link>XSurfUwp\x86\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\AppxManifest.xml">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\AppxManifest.xml">
       <Link>XSurfUwp\arm64\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -199,14 +217,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\*.xbf">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\*.xbf">
       <Link>XSurfUwp\x86\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\*.xbf">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\*.xbf">
       <Link>XSurfUwp\arm64\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -217,14 +235,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\UwpSurface.dll">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\UwpSurface.dll">
       <Link>XSurfUwp\x86\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\UwpSurface.dll">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\UwpSurface.dll">
       <Link>XSurfUwp\arm64\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -235,14 +253,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\UwpSurface.exe">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\UwpSurface.exe">
       <Link>XSurfUwp\x86\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\UwpSurface.exe">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\UwpSurface.exe">
       <Link>XSurfUwp\arm64\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -253,14 +271,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\UwpSurface.deps.json">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\UwpSurface.deps.json">
       <Link>XSurfUwp\x86\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\UwpSurface.deps.json">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\UwpSurface.deps.json">
       <Link>XSurfUwp\arm64\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -271,14 +289,68 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\UwpSurface.runtimeconfig.json">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\UwpSurface.runtimeconfig.json">
       <Link>XSurfUwp\x86\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	  
-	<Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\UwpSurface.runtimeconfig.json">
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\UwpSurface.runtimeconfig.json">
+      <Link>XSurfUwp\arm64\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x64\publish\WinRT.Runtime.dll">
+      <Link>XSurfUwp\x64\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\WinRT.Runtime.dll">
+      <Link>XSurfUwp\x86\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\WinRT.Runtime.dll">
+      <Link>XSurfUwp\arm64\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x64\publish\Microsoft.Windows.SDK.NET.dll">
+      <Link>XSurfUwp\x64\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\Microsoft.Windows.SDK.NET.dll">
+      <Link>XSurfUwp\x86\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\Microsoft.Windows.SDK.NET.dll">
+      <Link>XSurfUwp\arm64\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+      
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x64\publish\Microsoft.Windows.UI.Xaml.dll">
+      <Link>XSurfUwp\x64\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-x86\publish\Microsoft.Windows.UI.Xaml.dll">
+      <Link>XSurfUwp\x86\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  
+    <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\win-arm64\publish\Microsoft.Windows.UI.Xaml.dll">
       <Link>XSurfUwp\arm64\%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
