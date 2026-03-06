@@ -1,0 +1,16 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTemplate x:Uid="ControlTemplate_1" x:Key="__XSurfUwp.Fallback.FallbackControl.Template__" TargetType="ContentControl">
+        <Border x:Uid="Border_1" BorderBrush="#FF000000" BorderThickness="1">
+            <Border x:Uid="Border_2" BorderBrush="#FFEEE8AA" BorderThickness="5" Background="#FFFFFFFF" Padding="5">
+                <TextBlock x:Uid="TextBlock_1"
+                                Text="{TemplateBinding Tag}"
+                                FontFamily="XamlAutoFontFamily"
+                                FontWeight="Normal"
+                                FontSize="12"
+                                Foreground="#FF000000"
+                                TextTrimming="None"
+                                TextWrapping="Wrap" />
+            </Border>
+        </Border>
+    </ControlTemplate>
+</ResourceDictionary>

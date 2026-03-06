@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>XSurfUwp</RootNamespace>
+    <AssemblyName>UwpSurface</AssemblyName>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <WindowsSdkPackageVersion>10.0.26100.73-preview</WindowsSdkPackageVersion>
+    <TargetPlatformVersion>10.0.26100.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
+    <DefineConstants>DISABLE_XAML_GENERATED_MAIN;$(DefineConstants)</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RollForward>LatestMajor</RollForward>
+    <Nullable>enable</Nullable>
+    <UseUwp>true</UseUwp>
+    <Platforms>x86;x64;arm64</Platforms>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <PublishAot>true</PublishAot>
+    <PublishProfile>win-$(Platform).pubxml</PublishProfile>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <CsWinRTAotWarningLevel>3</CsWinRTAotWarningLevel>
+    <LangVersion>preview</LangVersion>
+    <CsWinRTIIDOptimizerOptOut>true</CsWinRTIIDOptimizerOptOut>
+    <DisableEmbeddedXbf>true</DisableEmbeddedXbf>
+    <_SupportEmbedFileResources>false</_SupportEmbedFileResources>
+    <_SupportXbfAsEmbedFileResources>false</_SupportXbfAsEmbedFileResources>
+    <ProjectPriFileName>__XSURF__DO_NOT_USE_THIS_PRI_FILE__XSURF__.pri</ProjectPriFileName>
+  </PropertyGroup>
+    
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.3.0-prerelease.251115.2" />
+  </ItemGroup>
+
+  <Target Name="CopyXbfAndAppxManifestToPublishDir" AfterTargets="_CreateFinalAppxManifestItem">
+	<PropertyGroup>
+	  <__AppxManifestFile>%(FinalAppxManifest.Identity)</__AppxManifestFile>
+	</PropertyGroup>
+
+    <ItemGroup>
+      <ResolvedFileToPublish Include="@(_CustomOutputGroupForPackagingOutput)" Condition="'%(Extension)' == '.xbf'">
+        <RelativePath>%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+	  </ResolvedFileToPublish>
+	
+	  <ResolvedFileToPublish Include="$(__AppxManifestFile)">
+        <RelativePath>AppxManifest.xml</RelativePath>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+	  </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>

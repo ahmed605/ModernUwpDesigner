@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ModernUwpDesigner.XSurfUwp": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": true
+    }
+  }
+}
