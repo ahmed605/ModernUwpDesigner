@@ -70,7 +70,6 @@ public class UwpHostPlatform : HostPlatformBase
 		errorSummary = string.Empty;
 		errorDetails = string.Empty;
 
-		
 		if (VS2026CompatibleGetProperty.GetPropertyCompat(hostProject, "SkipXamlDesignerSdkCheck")?.Equals("true", StringComparison.OrdinalIgnoreCase) is true)
 		{
 			return true;
