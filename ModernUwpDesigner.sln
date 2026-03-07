@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36121.58
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11519.219
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernUwpDesigner", "ModernUwpDesigner\ModernUwpDesigner.csproj", "{92366324-E39A-4EC4-97BE-75961D6933E7}"
 EndProject
@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ModernUwpDesigner.Shared", "ModernUwpDesigner.Shared\ModernUwpDesigner.Shared.shproj", "{94B68519-D6FB-431F-ACAA-39E657CACC1A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -88,5 +90,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A79A9B90-2358-46C6-A3E7-E65AFEAB3EB7}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		ModernUwpDesigner.Shared\ModernUwpDesigner.Shared.projitems*{05a5b194-533c-0ef8-6c47-fc78cbbc1320}*SharedItemsImports = 5
+		ModernUwpDesigner.Shared\ModernUwpDesigner.Shared.projitems*{94b68519-d6fb-431f-acaa-39e657cacc1a}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

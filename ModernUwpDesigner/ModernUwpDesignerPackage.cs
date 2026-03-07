@@ -1,14 +1,14 @@
 ﻿using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.DesignTools.DesignerHost.Platform;
+using Microsoft.VisualStudio.DesignTools.Utility;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using ModernUwpDesigner.Shared;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
-
-using Microsoft.VisualStudio.DesignTools.DesignerHost.Platform;
-using Microsoft.VisualStudio.DesignTools.Utility;
 
 namespace ModernUwpDesigner
 {
@@ -47,7 +47,9 @@ namespace ModernUwpDesigner
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            await base.InitializeAsync(cancellationToken, progress);
+            //AssemblyRedirectModuleInitializer.Init();
+
+			await base.InitializeAsync(cancellationToken, progress);
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             unsafe
