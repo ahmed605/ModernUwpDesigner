@@ -377,8 +377,7 @@ public static class DT
 		int num = UpdateResourceDictionarySource(((IWinRTObject)resourceDictionary).NativeObject.ThisPtr, value);
 		if (num != 0)
 		{
-			System.Exception? exceptionForHR = Marshal.GetExceptionForHR(num);
-			throw exceptionForHR!;
+			Marshal.ThrowExceptionForHR(num);
 		}
 	}
 
