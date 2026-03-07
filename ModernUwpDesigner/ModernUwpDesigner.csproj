@@ -159,9 +159,7 @@
       <Name>ModernUwpDesigner.UwpDesignerHost</Name>
     </ProjectReference>
   </ItemGroup>
-
   <Import Project="..\ModernUwpDesigner.Shared\ModernUwpDesigner.Shared.projitems" Label="Shared" />
-
   <!--<ItemGroup>
     <Content Include="..\ModernUwpDesigner.XSurfUwp\bin\$(HostRID)\publish\AppxManifest.xml">
       <Link>XSurfUwp\$(HostArch)\%(FileName)%(Extension)</Link>
@@ -335,7 +333,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="Usage Guide.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="LICENSE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Release Notes.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

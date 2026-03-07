@@ -1,0 +1,8 @@
+﻿--- Version 1.1 ---
+
+- Fixed Visual Studio 2026 compatibility issues
+- Fixed ResourceDictionary support
+
+--- Version 1.0 ---
+
+- Initial release
