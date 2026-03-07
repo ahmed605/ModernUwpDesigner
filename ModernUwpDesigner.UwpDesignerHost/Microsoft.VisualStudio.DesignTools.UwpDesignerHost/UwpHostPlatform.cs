@@ -70,12 +70,12 @@ public class UwpHostPlatform : HostPlatformBase
 		errorSummary = string.Empty;
 		errorDetails = string.Empty;
 
-		if (hostProject.GetPropertyCompat("SkipXamlDesignerSdkCheck")?.Equals("true", StringComparison.OrdinalIgnoreCase) is true)
+		if (hostProject?.GetPropertyCompat("SkipXamlDesignerSdkCheck")?.Equals("true", StringComparison.OrdinalIgnoreCase) is true)
 		{
 			return true;
         }
 
-		string text = hostProject.GetPropertyCompat("TargetPlatformSdkRootOverride");
+		string text = hostProject?.GetPropertyCompat("TargetPlatformSdkRootOverride");
 		if (!string.IsNullOrEmpty(text))
 		{
 			errorSummary = StringTable.CompatibleRuntimeCustomSdkSummary;
