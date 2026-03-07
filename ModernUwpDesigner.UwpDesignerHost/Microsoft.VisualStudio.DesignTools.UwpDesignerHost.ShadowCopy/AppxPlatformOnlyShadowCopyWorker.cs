@@ -63,7 +63,7 @@ internal sealed class AppxPlatformOnlyShadowCopyWorker : UwpHostShadowCopyWorker
 					System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
 						.GetGetMethod(true).MethodHandle.GetFunctionPointer();
 
-                if (GetReferenceResolver(hostProject) is DTEReferenceResolver resolver)
+				if (GetReferenceResolver(hostProject) is DTEReferenceResolver resolver)
 				{
 					var refs = resolver.References.Where(x => x.CopyLocal is not false);
 					foreach (var reference in refs)
@@ -197,7 +197,7 @@ internal sealed class AppxPlatformOnlyShadowCopyWorker : UwpHostShadowCopyWorker
 			{
 				return;
 			}
-			string property = hostProject.GetProperty("CoreRuntimeSDKName");
+			string property = VS2026CompatibleGetProperty.GetPropertyCompat(hostProject, "CoreRuntimeSDKName");
 			if (string.IsNullOrEmpty(property))
 			{
 				return;

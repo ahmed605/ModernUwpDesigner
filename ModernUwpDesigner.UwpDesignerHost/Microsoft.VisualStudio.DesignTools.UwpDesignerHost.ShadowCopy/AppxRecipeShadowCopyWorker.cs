@@ -116,7 +116,7 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
             surfaceInfo.PlatformOnlyReason = HostPlatformOnlyReason.UnbuiltProject;
             return false;
         }
-        string a = base.HostProject.GetProperty("UseDotNetNativeToolchain") ?? "";
+        string a = VS2026CompatibleGetProperty.GetPropertyCompat(base.HostProject, "UseDotNetNativeToolchain") ?? "";
         if ((projectLanguage.IsCPlusPlus() || string.Equals(a, "true", StringComparison.InvariantCultureIgnoreCase)) && !PlatformVersionHelper.IsAtLeastRelease(base.HostProject.PlatformIdentifier.TargetPlatformMinVersion, PlatformVersionHelper.MajorRelease.RS1))
         {
             surfaceInfo.PlatformOnlyReason = HostPlatformOnlyReason.MinSKDVersionTooLow;

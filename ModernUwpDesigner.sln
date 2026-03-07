@@ -93,6 +93,7 @@ Global
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ModernUwpDesigner.Shared\ModernUwpDesigner.Shared.projitems*{05a5b194-533c-0ef8-6c47-fc78cbbc1320}*SharedItemsImports = 5
+		ModernUwpDesigner.Shared\ModernUwpDesigner.Shared.projitems*{92366324-e39a-4ec4-97be-75961d6933e7}*SharedItemsImports = 4
 		ModernUwpDesigner.Shared\ModernUwpDesigner.Shared.projitems*{94b68519-d6fb-431f-acaa-39e657cacc1a}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal
