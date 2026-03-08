@@ -3,17 +3,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace System.Runtime.CompilerServices
-{
-	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
-	internal sealed class ModuleInitializerAttribute : Attribute
-	{
-		internal ModuleInitializerAttribute()
-		{
-		}
-	}
-}
-
 namespace ModernUwpDesigner.Shared
 {
 	internal static class AssemblyRedirectModuleInitializer
@@ -70,28 +59,32 @@ namespace ModernUwpDesigner.Shared
 			{
 				path = Path.Combine(_vsDir, "PrivateAssemblies\\Microsoft.VisualStudio.Telemetry.dll");
 			}
-			else if (requestedName.Name.Equals("Microsoft.VisualStudio.Shell.Interop", StringComparison.OrdinalIgnoreCase))
-			{
-				path = Path.Combine(_vsDir, "PublicAssemblies\\Microsoft.VisualStudio.Shell.Interop.dll");
-			}
-			else if (requestedName.Name.Equals("Microsoft.VisualStudio.Shell.Framework", StringComparison.OrdinalIgnoreCase))
-			{
-				path = Path.Combine(_vsDir, "PublicAssemblies\\Microsoft.VisualStudio.Shell.Framework.dll");
-			}
-			else if (requestedName.Name.Equals("Microsoft.VisualStudio.Threading", StringComparison.OrdinalIgnoreCase))
-			{
-				path = Path.Combine(_vsDir, "PublicAssemblies\\Microsoft.VisualStudio.Threading.17.x\\Microsoft.VisualStudio.Threading.dll");
-			}
-			else if (requestedName.Name.Equals("Microsoft.VisualStudio.Shell", StringComparison.OrdinalIgnoreCase) ||
-					 requestedName.Name.Equals("Microsoft.VisualStudio.Shell.15.0", StringComparison.OrdinalIgnoreCase))
-			{
-				path = Path.Combine(_vsDir, "PublicAssemblies\\Microsoft.VisualStudio.Shell.15.0.dll");
-			}
 			else if (requestedName.Name.Equals("Microsoft.VisualStudio.DesignTools.UwpSurfaceDesigner", StringComparison.OrdinalIgnoreCase))
 			{
 				path = Path.Combine(_vsDir, "PrivateAssemblies\\Microsoft.VisualStudio.DesignTools.UwpSurfaceDesigner.dll");
 			}
-			else
+            else if (requestedName.Name.Equals("Microsoft.VisualStudio.DesignTools.SurfaceDesigner", StringComparison.OrdinalIgnoreCase))
+            {
+                path = Path.Combine(_vsDir, "PrivateAssemblies\\Microsoft.VisualStudio.DesignTools.SurfaceDesigner.dll");
+            }
+            else if (requestedName.Name.Equals("Microsoft.VisualStudio.Shell.Interop", StringComparison.OrdinalIgnoreCase))
+            {
+                path = Path.Combine(_vsDir, "PublicAssemblies\\Microsoft.VisualStudio.Shell.Interop.dll");
+            }
+            else if (requestedName.Name.Equals("Microsoft.VisualStudio.Shell.Framework", StringComparison.OrdinalIgnoreCase))
+            {
+                path = Path.Combine(_vsDir, "PublicAssemblies\\Microsoft.VisualStudio.Shell.Framework.dll");
+            }
+            else if (requestedName.Name.Equals("Microsoft.VisualStudio.Threading", StringComparison.OrdinalIgnoreCase))
+            {
+                path = Path.Combine(_vsDir, "PublicAssemblies\\Microsoft.VisualStudio.Threading.17.x\\Microsoft.VisualStudio.Threading.dll");
+            }
+            else if (requestedName.Name.Equals("Microsoft.VisualStudio.Shell", StringComparison.OrdinalIgnoreCase) ||
+                     requestedName.Name.Equals("Microsoft.VisualStudio.Shell.15.0", StringComparison.OrdinalIgnoreCase))
+            {
+                path = Path.Combine(_vsDir, "PublicAssemblies\\Microsoft.VisualStudio.Shell.15.0.dll");
+            }
+            else
 			{
 				return null;
 			}

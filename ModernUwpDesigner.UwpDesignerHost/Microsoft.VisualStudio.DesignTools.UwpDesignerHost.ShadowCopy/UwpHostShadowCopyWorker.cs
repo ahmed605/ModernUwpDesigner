@@ -148,20 +148,30 @@ internal abstract class UwpHostShadowCopyWorker : IHostShadowCopyWorker
 
     public void EnsureTapAssemblyInFolder(string xamlDiagnosticFolder)
     {
-        xamlDiagnosticFolder = xamlDiagnosticFolder.Replace("Common7\\IDE\\CommonExtensions\\Microsoft\\XamlDiagnostics", "CoreCon\\Binaries\\XamlDiagnostics");
-        string text = SurfaceInfo.TapAssemblyFolder;
+        string tapFolder = SurfaceInfo.TapAssemblyFolder;
         string shadowCacheFolder = SurfaceInfo.ShadowCacheContent.ShadowCacheFolder;
-        if (string.IsNullOrEmpty(text))
+        if (string.IsNullOrEmpty(tapFolder))
         {
-            text = Path.Combine(xamlDiagnosticFolder, SurfaceInfo.RuntimeArchitecture);
+            tapFolder = Path.Combine(xamlDiagnosticFolder, SurfaceInfo.RuntimeArchitecture);
         }
-        string text2 = Path.Combine(text, "Microsoft.VisualStudio.DesignTools.UwpTap.dll");
-        if (File.Exists(text2) && !AccessHelper.IsAccessibleByAllApplicationPackages(text2))
+
+        string tapDll = Path.Combine(tapFolder, "Microsoft.VisualStudio.DesignTools.UwpTap.dll");
+        bool tapExists = File.Exists(tapDll);
+
+        if (!tapExists)
         {
-            SurfaceInfo.ShadowCacheContent.AddItem(text2, Path.Combine(shadowCacheFolder, "Microsoft.VisualStudio.DesignTools.UwpTap.dll"));
-            text = shadowCacheFolder;
+            tapFolder = tapFolder.Replace("Common7\\IDE\\CommonExtensions\\Microsoft\\XamlDiagnostics", "CoreCon\\Binaries\\XamlDiagnostics");
+            tapDll = Path.Combine(tapFolder, "Microsoft.VisualStudio.DesignTools.UwpTap.dll");
+            tapExists = File.Exists(tapDll);
         }
-        SurfaceInfo.TapAssemblyFolder = text;
+
+        if (tapExists && !AccessHelper.IsAccessibleByAllApplicationPackages(tapDll))
+        {
+            SurfaceInfo.ShadowCacheContent.AddItem(tapDll, Path.Combine(shadowCacheFolder, "Microsoft.VisualStudio.DesignTools.UwpTap.dll"));
+            tapFolder = shadowCacheFolder;
+        }
+
+        SurfaceInfo.TapAssemblyFolder = tapFolder;
     }
 
     public virtual Task FixupResourcePriFileAsync(string packageName, CancellationToken cancellationToken)

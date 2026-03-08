@@ -2,13 +2,18 @@
 using Microsoft.VisualStudio.DesignTools.DesignerContract;
 using Microsoft.VisualStudio.DesignTools.DesignerHost.HostServices;
 using Microsoft.VisualStudio.DesignTools.DesignerHost.Platform;
+using Microsoft.VisualStudio.DesignTools.SurfaceDesigner.Documents.Project;
+using Microsoft.VisualStudio.DesignTools.SurfaceDesigner.Views;
 using Microsoft.VisualStudio.DesignTools.Utility;
+using Microsoft.VisualStudio.DesignTools.UwpDesignerHost;
+using Microsoft.VisualStudio.DesignTools.UwpSurfaceDesigner.Documents;
 using Microsoft.VisualStudio.DesignTools.UwpSurfaceDesigner.Views;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
@@ -45,13 +50,10 @@ namespace ModernUwpDesigner
         /// </summary>
         public const string PackageGuidString = "c87560ed-02e7-4c00-8dc6-b1ac79534ce4";
 
-        private static Hook hook;
-        private static Hook hook2;
+        private static Hook _updateRuntimeArchitectureHook;
+        private static Hook _incompatibleDesignerRuntimeArchitectureHook;
 
-        private static PlatformSpecification ModernUwpSpecification = new PlatformSpecification("Windows", "10.0-..", new string[] { "Managed", "Native" }, ".NETCoreApp", "9.0-..", null, "UAP", null);
-        //private delegate void RegisterPlatformConfigurationDelegate(PlatformSpecification platformSpecification, IDictionary<string, string> platformProperties);
-
-        private delegate void UpdateRuntimeArchitecture(HostPlatformBase instance, SurfaceProcessInfo surfaceProcessInfo, IHostProject hostProject);
+        private static readonly PlatformSpecification ModernUwpSpecification = new("Windows", "10.0-..", ["Managed", "Native"], ".NETCoreApp", "10.0-..", null, "UAP", null);
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -61,13 +63,12 @@ namespace ModernUwpDesigner
             unsafe
             {
 
-                var RegisterPlatformConfiguration = (delegate*<PlatformSpecification, IDictionary<string, string>, void>)typeof(PlatformConfigurationService).GetMethod("RegisterPlatformConfiguration", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).MethodHandle.GetFunctionPointer();
+                var RegisterPlatformConfiguration = (delegate*<PlatformSpecification, IDictionary<string, string>, void>)typeof(PlatformConfigurationService).GetMethod("RegisterPlatformConfiguration", BindingFlags.NonPublic | BindingFlags.Static).MethodHandle.GetFunctionPointer();
                 RegisterPlatformConfiguration(ModernUwpSpecification, new Dictionary<string, string>
                 {
                     { "PlatformCreatorAssembly", "Microsoft.VisualStudio.DesignTools.UwpSurfaceDesigner" },
                     { "PlatformCreatorType", "Microsoft.VisualStudio.DesignTools.UwpSurfaceDesigner.UwpPlatformCreator" },
-                    //{ "HostPlatformAssembly", "ModernUwpDesigner.UwpDesignerHost.dll" },
-                    { "HostPlatformAssembly", typeof(Microsoft.VisualStudio.DesignTools.UwpDesignerHost.UwpHostPlatform).Assembly.Location },
+                    { "HostPlatformAssembly", typeof(UwpHostPlatform).Assembly.Location },
                     { "HostPlatformType", "Microsoft.VisualStudio.DesignTools.UwpDesignerHost.UwpHostPlatform" },
                     { "IsolationUnification", "true" },
                     { "ReferenceAssemblyMode", "None" },
@@ -84,34 +85,51 @@ namespace ModernUwpDesigner
                 });
             }
 
-            var type = typeof(UwpSceneView);
-            var property = type.GetProperty("IncompatibleDesignerRuntimeArchitecture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var method = property.GetMethod;
-            hook = new Hook(method, (UwpSceneView instance) => false);
-
-            var type2 = typeof(HostPlatformBase);
-            var method2 = type2.GetMethod("UpdateRuntimeArchitecture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            hook2 = new Hook(method2, (UpdateRuntimeArchitecture original, HostPlatformBase instance, SurfaceProcessInfo surfaceProcessInfo, IHostProject hostProject) =>
+            if (RuntimeInformation.ProcessArchitecture is Architecture.Arm64 &&
+                _updateRuntimeArchitectureHook is null &&
+                _incompatibleDesignerRuntimeArchitectureHook is null)
             {
-                if (string.Equals(surfaceProcessInfo.Architecture, "ARM64", StringComparison.OrdinalIgnoreCase))
+                var property = typeof(UwpSceneView).GetProperty("IncompatibleDesignerRuntimeArchitecture", BindingFlags.NonPublic | BindingFlags.Instance);
+                _incompatibleDesignerRuntimeArchitectureHook = new Hook(property.GetMethod, IncompatibleDesignerRuntimeArchitectureHook);
+
+                var method = typeof(HostPlatformBase).GetMethod("UpdateRuntimeArchitecture", BindingFlags.NonPublic | BindingFlags.Instance);
+                _updateRuntimeArchitectureHook = new Hook(method, UpdateRuntimeArchitectureHook);
+            }
+        }
+
+        private delegate bool IncompatibleDesignerRuntimeArchitecture(UwpSceneView instance);
+
+        private bool IncompatibleDesignerRuntimeArchitectureHook(IncompatibleDesignerRuntimeArchitecture original, UwpSceneView instance)
+        {
+            if (((SceneView)(object)instance).ProjectContext is ProjectContextBase context)
+            {
+                var hostProject = context.HostProject;
+                var platformIdentifier = hostProject.PlatformIdentifier;
+
+                if (hostProject.BuildPlatform.Equals("ARM64", StringComparison.OrdinalIgnoreCase) &&
+                    platformIdentifier.TargetFrameworkIdentifier.Equals(".NETCoreApp", StringComparison.Ordinal) &&
+                    platformIdentifier.TargetFrameworkVersion.Major >= 10)
                 {
-                    if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
-                    {
-                        surfaceProcessInfo.ShadowCopyType = HostShadowCopyType.PlatformOnly;
-                        surfaceProcessInfo.RuntimeArchitecture = "x86";
-                        surfaceProcessInfo.PlatformOnlyReason = HostPlatformOnlyReason.UnsupportedArchitecture;
-                    }
-                    else
-                    {
-                        string architecture = (surfaceProcessInfo.RuntimeArchitecture = "ARM64");
-                        surfaceProcessInfo.Architecture = architecture;
-                    }
+                    return false;
                 }
-                else
-                {
-                    original(instance, surfaceProcessInfo, hostProject);
-                }
-            });
+            }
+
+            return original(instance);
+        }
+
+        private delegate void UpdateRuntimeArchitecture(HostPlatformBase instance, SurfaceProcessInfo surfaceProcessInfo, IHostProject hostProject);
+
+        private void UpdateRuntimeArchitectureHook(UpdateRuntimeArchitecture original, HostPlatformBase instance, SurfaceProcessInfo surfaceProcessInfo, IHostProject hostProject)
+        {
+            if (string.Equals(surfaceProcessInfo.Architecture, "ARM64", StringComparison.OrdinalIgnoreCase))
+            {
+                string architecture = (surfaceProcessInfo.RuntimeArchitecture = "ARM64");
+                surfaceProcessInfo.Architecture = architecture;
+            }
+            else
+            {
+                original(instance, surfaceProcessInfo, hostProject);
+            }
         }
     }
 }
