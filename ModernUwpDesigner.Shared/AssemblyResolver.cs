@@ -87,6 +87,10 @@ namespace ModernUwpDesigner.Shared
 			{
 				path = Path.Combine(_vsDir, "PublicAssemblies\\Microsoft.VisualStudio.Shell.15.0.dll");
 			}
+			else if (requestedName.Name.Equals("Microsoft.VisualStudio.DesignTools.UwpSurfaceDesigner", StringComparison.OrdinalIgnoreCase))
+			{
+				path = Path.Combine(_vsDir, "PrivateAssemblies\\Microsoft.VisualStudio.DesignTools.UwpSurfaceDesigner.dll");
+			}
 			else
 			{
 				return null;

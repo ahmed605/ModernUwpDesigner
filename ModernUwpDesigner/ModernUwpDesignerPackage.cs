@@ -1,14 +1,17 @@
 ﻿using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.DesignTools.DesignerContract;
+using Microsoft.VisualStudio.DesignTools.DesignerHost.HostServices;
+using Microsoft.VisualStudio.DesignTools.DesignerHost.Platform;
+using Microsoft.VisualStudio.DesignTools.Utility;
+using Microsoft.VisualStudio.DesignTools.UwpSurfaceDesigner.Views;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
-
-using Microsoft.VisualStudio.DesignTools.DesignerHost.Platform;
-using Microsoft.VisualStudio.DesignTools.Utility;
 
 namespace ModernUwpDesigner
 {
@@ -41,6 +44,9 @@ namespace ModernUwpDesigner
         /// ModernUwpDesignerPackage GUID string.
         /// </summary>
         public const string PackageGuidString = "c87560ed-02e7-4c00-8dc6-b1ac79534ce4";
+
+        private static Hook hook;
+        private static Hook hook2;
 
         private static PlatformSpecification ModernUwpSpecification = new PlatformSpecification("Windows", "10.0-..", new string[] { "Managed", "Native" }, ".NETCoreApp", "9.0-..", null, "UAP", null);
         //private delegate void RegisterPlatformConfigurationDelegate(PlatformSpecification platformSpecification, IDictionary<string, string> platformProperties);
@@ -75,6 +81,22 @@ namespace ModernUwpDesigner
                     { "AppPackageType", "WindowsXaml" }
                 });
             }
+
+            var type = typeof(UwpSceneView);
+            var property = type.GetProperty("IncompatibleDesignerRuntimeArchitecture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var method = property.GetMethod;
+            hook = new Hook(method, (UwpSceneView instance) => false);
+
+            var type2 = typeof(HostPlatformBase);
+            var method2 = type2.GetMethod("UpdateRuntimeArchitecture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            hook2 = new Hook(method2, (HostPlatformBase instance, SurfaceProcessInfo surfaceProcessInfo, IHostProject hostProject) =>
+            {
+                if (string.Equals(surfaceProcessInfo.Architecture, "ARM64", StringComparison.OrdinalIgnoreCase))
+                {
+                    string architecture = (surfaceProcessInfo.RuntimeArchitecture = "ARM64");
+                    surfaceProcessInfo.Architecture = architecture;
+                }
+            });
         }
     }
 }
