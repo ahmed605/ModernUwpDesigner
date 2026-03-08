@@ -51,6 +51,8 @@ namespace ModernUwpDesigner
         private static PlatformSpecification ModernUwpSpecification = new PlatformSpecification("Windows", "10.0-..", new string[] { "Managed", "Native" }, ".NETCoreApp", "9.0-..", null, "UAP", null);
         //private delegate void RegisterPlatformConfigurationDelegate(PlatformSpecification platformSpecification, IDictionary<string, string> platformProperties);
 
+        private delegate void UpdateRuntimeArchitecture(HostPlatformBase instance, SurfaceProcessInfo surfaceProcessInfo, IHostProject hostProject);
+
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress);
@@ -89,12 +91,25 @@ namespace ModernUwpDesigner
 
             var type2 = typeof(HostPlatformBase);
             var method2 = type2.GetMethod("UpdateRuntimeArchitecture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            hook2 = new Hook(method2, (HostPlatformBase instance, SurfaceProcessInfo surfaceProcessInfo, IHostProject hostProject) =>
+            hook2 = new Hook(method2, (UpdateRuntimeArchitecture original, HostPlatformBase instance, SurfaceProcessInfo surfaceProcessInfo, IHostProject hostProject) =>
             {
                 if (string.Equals(surfaceProcessInfo.Architecture, "ARM64", StringComparison.OrdinalIgnoreCase))
                 {
-                    string architecture = (surfaceProcessInfo.RuntimeArchitecture = "ARM64");
-                    surfaceProcessInfo.Architecture = architecture;
+                    if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
+                    {
+                        surfaceProcessInfo.ShadowCopyType = HostShadowCopyType.PlatformOnly;
+                        surfaceProcessInfo.RuntimeArchitecture = "x86";
+                        surfaceProcessInfo.PlatformOnlyReason = HostPlatformOnlyReason.UnsupportedArchitecture;
+                    }
+                    else
+                    {
+                        string architecture = (surfaceProcessInfo.RuntimeArchitecture = "ARM64");
+                        surfaceProcessInfo.Architecture = architecture;
+                    }
+                }
+                else
+                {
+                    original(instance, surfaceProcessInfo, hostProject);
                 }
             });
         }

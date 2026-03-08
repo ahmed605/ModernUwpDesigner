@@ -148,6 +148,7 @@ internal abstract class UwpHostShadowCopyWorker : IHostShadowCopyWorker
 
     public void EnsureTapAssemblyInFolder(string xamlDiagnosticFolder)
     {
+        xamlDiagnosticFolder = xamlDiagnosticFolder.Replace("Common7\\IDE\\CommonExtensions\\Microsoft\\XamlDiagnostics", "CoreCon\\Binaries\\XamlDiagnostics");
         string text = SurfaceInfo.TapAssemblyFolder;
         string shadowCacheFolder = SurfaceInfo.ShadowCacheContent.ShadowCacheFolder;
         if (string.IsNullOrEmpty(text))
