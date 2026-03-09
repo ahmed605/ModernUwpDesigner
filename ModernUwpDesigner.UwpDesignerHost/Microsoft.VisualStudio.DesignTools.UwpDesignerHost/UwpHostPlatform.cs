@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio.DesignTools.DesignerContract;
 using Microsoft.VisualStudio.DesignTools.DesignerHost.HostServices;
 using Microsoft.VisualStudio.DesignTools.DesignerHost.ShadowCopy;
@@ -19,6 +14,13 @@ using Microsoft.VisualStudio.DesignTools.UwpDesignerHost.ShadowCopy;
 using Microsoft.VisualStudio.DesignTools.UwpDesignerHost.Utility;
 using Microsoft.VisualStudio.DesignTools.Xaml.LanguageService;
 using Microsoft.VisualStudio.Telemetry;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Windows.Foundation.Metadata;
 
 namespace Microsoft.VisualStudio.DesignTools.UwpDesignerHost;
@@ -37,7 +39,7 @@ public class UwpHostPlatform : HostPlatformBase
 
 	public override IUriResolver UriResolver => UwpUriResolver.Instance;
 
-	//internal static IServiceProvider ServiceProvider { get; private set; }
+	internal static IServiceProvider ServiceProvider { get; private set; }
 
     public UwpHostPlatform(IServiceProvider serviceProvider, PlatformIdentifier platformIdentifier)
 		: this(serviceProvider, platformIdentifier, null)
@@ -49,7 +51,7 @@ public class UwpHostPlatform : HostPlatformBase
         : base(serviceProvider, new PlatformIdentifier(new PlatformName(PlatformNames.UAP, platformIdentifier.TargetPlatformVersion), platformIdentifier.TargetRuntime, platformIdentifier.GetTargetFramework(), platformIdentifier.GetTargetSdk(), XamlRuntimeNames.UAP)) // HACK: FIX ME
     {
 		AppPackageHelper = appPackageHelper ?? new AppPackageHelper();
-		//ServiceProvider = serviceProvider;
+		ServiceProvider = serviceProvider;
     }
 
 	internal void SetAppPackageHelper(IAppPackageHelper appPackageHelper)
@@ -204,7 +206,15 @@ public class UwpHostPlatform : HostPlatformBase
 		IHostShadowCopyWorker shadowCopyWorker = info.ShadowCopyWorker;
 		string packageName = EnsurePackageName(info.ShadowCacheContent);
 		await shadowCopyWorker.FixupResourcePriFileAsync(packageName, cancelToken);
-	}
+
+        if (ServiceProvider?.GetService(typeof(DTE)) is DTE2 dte)
+        {
+            while (dte.Solution?.SolutionBuild?.BuildState is vsBuildState.vsBuildStateInProgress)
+            {
+                await Task.Delay(200);
+            }
+        }
+    }
 
 	protected override ISurfaceProcess ActivateSurface(IServiceProvider serviceProvider, Guid surfaceProcessId, string path, string tapPath, IPipeDataBridge dataBridge, bool inhibitStartupWatsons, CancellationToken cancelToken)
 	{

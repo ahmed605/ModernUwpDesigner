@@ -1,4 +1,5 @@
 using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio.DesignTools.DesignerContract;
 using Microsoft.VisualStudio.DesignTools.DesignerHost.HostServices;
 using Microsoft.VisualStudio.DesignTools.DesignerHost.Utility;
@@ -204,7 +205,7 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
                 base.SurfaceInfo.ShadowCacheContent.AddItem(item, Path.GetFileName(item));
             }
         }
-        return Task.Factory.StartNew(async delegate
+        return Task.Factory.StartNew(/*async*/ delegate
         {
             ExecuteCopy(cancelToken);
             if (string.IsNullOrEmpty(base.SurfaceInfo.FrameworkRuntimeVersion) && base.SurfaceInfo.ShadowCacheContent != null)
