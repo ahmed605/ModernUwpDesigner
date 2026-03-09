@@ -1,3 +1,14 @@
+using EnvDTE;
+using Microsoft.VisualStudio.DesignTools.DesignerContract;
+using Microsoft.VisualStudio.DesignTools.DesignerHost.HostServices;
+using Microsoft.VisualStudio.DesignTools.DesignerHost.Utility;
+using Microsoft.VisualStudio.DesignTools.Utility;
+using Microsoft.VisualStudio.DesignTools.Utility.Data;
+using Microsoft.VisualStudio.DesignTools.Utility.Diagnostics;
+using Microsoft.VisualStudio.DesignTools.Utility.IO;
+using Microsoft.VisualStudio.DesignTools.Utility.Telemetry;
+using Microsoft.VisualStudio.DesignTools.UwpDesignerHost.AppPackage;
+using Microsoft.VisualStudio.DesignTools.UwpDesignerHost.Utility;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,15 +19,6 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using Microsoft.VisualStudio.DesignTools.DesignerContract;
-using Microsoft.VisualStudio.DesignTools.DesignerHost.Utility;
-using Microsoft.VisualStudio.DesignTools.Utility;
-using Microsoft.VisualStudio.DesignTools.Utility.Data;
-using Microsoft.VisualStudio.DesignTools.Utility.Diagnostics;
-using Microsoft.VisualStudio.DesignTools.Utility.IO;
-using Microsoft.VisualStudio.DesignTools.Utility.Telemetry;
-using Microsoft.VisualStudio.DesignTools.UwpDesignerHost.AppPackage;
-using Microsoft.VisualStudio.DesignTools.UwpDesignerHost.Utility;
 
 namespace Microsoft.VisualStudio.DesignTools.UwpDesignerHost.ShadowCopy;
 
@@ -111,6 +113,7 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
             surfaceInfo.PlatformOnlyReason = HostPlatformOnlyReason.UnbuiltProject;
             return false;
         }
+
         if (!File.Exists(AppxRecipePath))
         {
             surfaceInfo.PlatformOnlyReason = HostPlatformOnlyReason.UnbuiltProject;
@@ -201,7 +204,7 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
                 base.SurfaceInfo.ShadowCacheContent.AddItem(item, Path.GetFileName(item));
             }
         }
-        return Task.Factory.StartNew(delegate
+        return Task.Factory.StartNew(async delegate
         {
             ExecuteCopy(cancelToken);
             if (string.IsNullOrEmpty(base.SurfaceInfo.FrameworkRuntimeVersion) && base.SurfaceInfo.ShadowCacheContent != null)
@@ -230,6 +233,11 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
                 catch { }
             }
 
+            /*if (HostProject.GetBoolProperty(Constants.Properties.XamlDesignerForceCleanupResourcesOnCopy, true) &&
+               !HostProject.GetBoolProperty(Constants.Properties.XamlDesignerDisableEmbeddedResources))
+            {
+                await TryEvictAppXbfAsync(cancelToken).ConfigureAwait(continueOnCapturedContext: false);
+            }*/
         }, cancelToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
@@ -300,8 +308,11 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
             File.WriteAllText(evictedAppXbfPath, string.Empty);
             File.SetLastWriteTimeUtc(evictedAppXbfPath, lastWriteTimeUtc);
 
-            //appXbfState = AppXbfState.NoAppXbf;
-            //return true;
+            /*if (HostProject.GetBoolProperty(Constants.Properties.XamlDesignerDisableEmbeddedResources))
+            {
+                appXbfState = AppXbfState.NoAppXbf;
+                return true;
+            }*/
 
             result = true;
         }
@@ -543,7 +554,8 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
         {
             DateTime lastWriteTimeUtc = File.GetLastWriteTimeUtc(EvictedAppXbfPath);
             bool flag = lastWriteTimeUtc < File.GetLastWriteTimeUtc(token.SourcePath);
-            appXbfState = ((!flag) ? AppXbfState.NoAppXbf : AppXbfState.AppXbfPresent);
+            //appXbfState = ((!flag) ? AppXbfState.NoAppXbf : AppXbfState.AppXbfPresent);
+            appXbfState = ((!flag) ? AppXbfState.NoAppXbf : AppXbfState.NotComputed);
             return flag;
         }
         return true;
@@ -551,23 +563,24 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
 
     public override async Task FixupResourcePriFileAsync(string packageName, CancellationToken cancellationToken)
     {
-        //return;
+        //if (HostProject.GetBoolProperty(Constants.Properties.XamlDesignerDisableEmbeddedResources))
+        //    return;
 
         cancellationToken.ThrowIfCancellationRequested();
         DateTime start = DateTime.Now;
         string destinationPriFilePath = priFileGenerator.DestinationPriFilePath;
-        string text = sourcePriFilePath;
+        string priSourcePath = sourcePriFilePath;
         Logger.Debug("Fixing resources.pri " + destinationPriFilePath, "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
-        if (!File.Exists(text))
+        if (!File.Exists(priSourcePath))
         {
             if (appXbfState == AppXbfState.NotComputed)
             {
-                appXbfState = AppXbfState.AppXbfPresent;
+                //appXbfState = AppXbfState.AppXbfPresent;
             }
             Logger.Debug($"Skipped fixing resources.pri (state:{appXbfState})", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
             return;
         }
-        DateTime lastWriteTimeUtc = File.GetLastWriteTimeUtc(text);
+        DateTime lastWriteTimeUtc = File.GetLastWriteTimeUtc(priSourcePath);
         if (File.Exists(destinationPriFilePath))
         {
             DateTime lastWriteTimeUtc2 = File.GetLastWriteTimeUtc(destinationPriFilePath);
@@ -576,21 +589,40 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
                 DateTime lastWriteTimeUtc3 = File.GetLastWriteTimeUtc(priFileGenerator.PriInfoDumpFilePath);
                 if (appXbfState == AppXbfState.NotComputed)
                 {
-                    appXbfState = ((!(lastWriteTimeUtc3 >= lastWriteTimeUtc2)) ? AppXbfState.NoAppXbf : AppXbfState.AppXbfPresent);
+                    //appXbfState = ((!(lastWriteTimeUtc3 >= lastWriteTimeUtc2)) ? AppXbfState.NoAppXbf : AppXbfState.AppXbfPresent);
+                    appXbfState = ((!(lastWriteTimeUtc3 >= lastWriteTimeUtc2)) ? AppXbfState.NoAppXbf : AppXbfState.NotComputed);
                 }
                 Logger.Debug($"Found up to date resources.pri (state:{appXbfState})", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
                 return;
             }
         }
-        File.Delete(priFileGenerator.PriInfoDumpFilePath);
+
+        string priIndexerType = "pri";
+        //if (HostProject.GetBoolProperty(Constants.Properties.XamlDesignerCleanupResourcesOnBuild, true))
+        {
+            string error = await priFileGenerator.DumpPriAsync(priSourcePath, priFileGenerator.PriInfoDumpFilePath, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+            if (string.IsNullOrEmpty(error))
+            {
+                string xaml = File.ReadAllText(priFileGenerator.PriInfoDumpFilePath);
+                string xml = PriCleaner.Clean(xaml).Xml;
+                cancellationToken.ThrowIfCancellationRequested();
+                File.WriteAllText(priFileGenerator.PriInfoDumpFilePath, xml);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                priSourcePath = priFileGenerator.PriInfoDumpFilePath;
+                priIndexerType = "priinfo";
+            }
+        }
+
         if (appXbfState == AppXbfState.NotComputed)
         {
-            appXbfState = AppXbfState.AppXbfPresent;
+            //appXbfState = AppXbfState.AppXbfPresent;
         }
         cancellationToken.ThrowIfCancellationRequested();
-        priFileGenerator.WriteMakePriConfig(text, "pri");
+        priFileGenerator.WriteMakePriConfig(priSourcePath, priIndexerType);
         await InvokeMakePriAsync(Path.GetDirectoryName(targetAssemblyPath), packageName, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
+        File.Delete(priFileGenerator.PriInfoDumpFilePath);
         base.SurfaceInfo.TelemetryProperties["PriFixupAppIdTime"] = TelemetryHelper.TimeSince(start);
     }
 

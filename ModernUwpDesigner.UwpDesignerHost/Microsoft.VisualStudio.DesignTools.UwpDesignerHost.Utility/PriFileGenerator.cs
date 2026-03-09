@@ -33,7 +33,7 @@ internal class PriFileGenerator : IPriFileGenerator
 
 	public string PriInfoDumpFilePath => Path.Combine(ShadowCacheFolder, DestinationPriFilePath + ".xml");
 
-	public string ConfigFilePath => Path.Combine(ShadowCacheFolder, "config.xml");
+	public string ConfigFilePath => Path.Combine(ShadowCacheFolder, ConfigFileName);
 
 	public PriFileGenerator(PlatformIdentifier platformIdentifier, SurfaceProcessInfo surfaceProcessInfo)
 	{
@@ -57,7 +57,7 @@ internal class PriFileGenerator : IPriFileGenerator
 		stringBuilder.Replace("{rootToken}", SecurityElement.Escape(ShadowCacheFolder));
 		stringBuilder.Replace("{startIndexAtToken}", SecurityElement.Escape(priPath));
 		stringBuilder.Replace("{indexerType}", indexerType);
-		surfaceProcessInfo.ShadowCacheContent.CacheFileFromText("config.xml", stringBuilder.ToString());
+		surfaceProcessInfo.ShadowCacheContent.CacheFileFromText(ConfigFileName, stringBuilder.ToString());
 	}
 
 	public async Task<string> MakePriAsync(string sourceDirectory, string packageName, CancellationToken cancellationToken)

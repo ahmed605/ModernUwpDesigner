@@ -37,7 +37,9 @@ public class UwpHostPlatform : HostPlatformBase
 
 	public override IUriResolver UriResolver => UwpUriResolver.Instance;
 
-	public UwpHostPlatform(IServiceProvider serviceProvider, PlatformIdentifier platformIdentifier)
+	//internal static IServiceProvider ServiceProvider { get; private set; }
+
+    public UwpHostPlatform(IServiceProvider serviceProvider, PlatformIdentifier platformIdentifier)
 		: this(serviceProvider, platformIdentifier, null)
 	{
 	}
@@ -47,7 +49,8 @@ public class UwpHostPlatform : HostPlatformBase
         : base(serviceProvider, new PlatformIdentifier(new PlatformName(PlatformNames.UAP, platformIdentifier.TargetPlatformVersion), platformIdentifier.TargetRuntime, platformIdentifier.GetTargetFramework(), platformIdentifier.GetTargetSdk(), XamlRuntimeNames.UAP)) // HACK: FIX ME
     {
 		AppPackageHelper = appPackageHelper ?? new AppPackageHelper();
-	}
+		//ServiceProvider = serviceProvider;
+    }
 
 	internal void SetAppPackageHelper(IAppPackageHelper appPackageHelper)
 	{
@@ -70,7 +73,7 @@ public class UwpHostPlatform : HostPlatformBase
 		errorSummary = string.Empty;
 		errorDetails = string.Empty;
 
-		if (hostProject?.GetPropertyCompat("SkipXamlDesignerSdkCheck")?.Equals("true", StringComparison.OrdinalIgnoreCase) is true)
+		if (hostProject?.GetBoolProperty(Constants.Properties.SkipXamlDesignerSdkCheck) is true)
 		{
 			return true;
         }
@@ -83,8 +86,9 @@ public class UwpHostPlatform : HostPlatformBase
 			LogCustomSdkLocationTelemetry(hostProject);
 			return false;
 		}
+
 		bool flag = true;
-		Version version = new Version("10.0");
+		Version version = new("10.0");
 		Version windows10Sdk_10_0_ = PlatformVersionHelper.Windows10Sdk_10_0_16299;
 		string text2 = StringTable.WindowsFallCreatorsUpdate;
 		string arg = windows10Sdk_10_0_.ToString();
@@ -93,6 +97,7 @@ public class UwpHostPlatform : HostPlatformBase
 		{
 			flag = false;
 		}
+
 		Version targetPlatformVersion = base.PlatformIdentifier.TargetPlatformVersion;
 		if (targetPlatformVersion != null && targetPlatformVersion > windows10Sdk_10_0_ && runtimePlatformVersion != null && targetPlatformVersion > runtimePlatformVersion)
 		{
@@ -106,6 +111,7 @@ public class UwpHostPlatform : HostPlatformBase
 				arg = SdkUtil.GetPlatformVersion(targetSdk, targetPlatform);
 			}
 		}
+
 		if (!flag)
 		{
 			if (text2 != null && windows10Sdk_10_0_ != null)
@@ -120,6 +126,7 @@ public class UwpHostPlatform : HostPlatformBase
 			}
 			return false;
 		}
+
 		return base.IsCompatibleRuntimePlatform(hostProject, out errorSummary, out errorDetails);
 	}
 

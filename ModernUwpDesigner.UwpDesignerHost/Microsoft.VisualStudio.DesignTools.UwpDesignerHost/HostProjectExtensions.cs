@@ -3,7 +3,7 @@ using System;
 
 namespace Microsoft.VisualStudio.DesignTools.UwpDesignerHost;
 
-internal static class VS2026CompatibleGetProperty
+internal static class HostProjectExtensions
 {
 	private static nint _fnptrGetProperty = 0;
 
@@ -24,4 +24,15 @@ internal static class VS2026CompatibleGetProperty
 
 		return ((delegate*<IHostProject, string, string>)_fnptrGetProperty)(project, property);
 	}
+
+	internal static bool GetBoolProperty(this IHostProject project, string property, bool defaultValue = false)
+	{
+		var prop = project.GetPropertyCompat(property);
+		if (string.IsNullOrEmpty(prop))
+		{
+			return defaultValue;
+        }
+
+		return prop.Equals("true", StringComparison.OrdinalIgnoreCase);
+    }
 }
