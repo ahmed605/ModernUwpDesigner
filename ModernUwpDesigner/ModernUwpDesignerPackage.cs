@@ -97,6 +97,17 @@ namespace ModernUwpDesigner
             }
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            _incompatibleDesignerRuntimeArchitectureHook?.Dispose();
+            _incompatibleDesignerRuntimeArchitectureHook = null;
+
+            _updateRuntimeArchitectureHook?.Dispose();
+            _updateRuntimeArchitectureHook = null;
+
+            base.Dispose(disposing);
+        }
+
         private delegate bool IncompatibleDesignerRuntimeArchitecture(UwpSceneView instance);
 
         private bool IncompatibleDesignerRuntimeArchitectureHook(IncompatibleDesignerRuntimeArchitecture original, UwpSceneView instance)
