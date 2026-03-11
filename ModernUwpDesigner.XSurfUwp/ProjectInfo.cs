@@ -1,15 +1,9 @@
-using System.Runtime.CompilerServices;
+using Windows.UI.Xaml.Data;
 
 namespace XSurfUwp;
 
+[Bindable]
 public static class ProjectInfo
 {
-	[field: CompilerGenerated]
-	public static string InfoStore
-	{
-		[CompilerGenerated]
-		get;
-		[CompilerGenerated]
-		set;
-	}
+    public static string InfoStore { get; set; }
 }

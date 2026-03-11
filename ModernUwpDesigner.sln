@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36121.58 d17.14
+VisualStudioVersion = 17.14.36121.58
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernUwpDesigner", "ModernUwpDesigner\ModernUwpDesigner.csproj", "{92366324-E39A-4EC4-97BE-75961D6933E7}"
 EndProject
@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ModernUwpDesigner.Shared", "ModernUwpDesigner.Shared\ModernUwpDesigner.Shared.shproj", "{94B68519-D6FB-431F-ACAA-39E657CACC1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernUwpDesigner.XSurfUwp.OtherProvidersLib", "ModernUwpDesigner.XSurfUwp.OtherProvidersLib\ModernUwpDesigner.XSurfUwp.OtherProvidersLib.csproj", "{34759591-51CF-4540-B2A4-DA7E0B29B5A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -86,6 +88,22 @@ Global
 		{03E63301-9F94-405A-B552-145B73C04560}.Release|x86.ActiveCfg = Release|x86
 		{03E63301-9F94-405A-B552-145B73C04560}.Release|x86.Build.0 = Release|x86
 		{03E63301-9F94-405A-B552-145B73C04560}.Release|x86.Deploy.0 = Release|x86
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Debug|Any CPU.Build.0 = Debug|x64
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Debug|arm64.ActiveCfg = Debug|arm64
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Debug|arm64.Build.0 = Debug|arm64
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Debug|x64.ActiveCfg = Debug|x64
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Debug|x64.Build.0 = Debug|x64
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Debug|x86.Build.0 = Debug|Any CPU
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Release|arm64.ActiveCfg = Release|Any CPU
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Release|arm64.Build.0 = Release|Any CPU
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Release|x64.ActiveCfg = Release|Any CPU
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Release|x64.Build.0 = Release|Any CPU
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Release|x86.ActiveCfg = Release|Any CPU
+		{34759591-51CF-4540-B2A4-DA7E0B29B5A2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

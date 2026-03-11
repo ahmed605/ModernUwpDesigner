@@ -12,56 +12,23 @@ using WinRT;
 
 namespace XSurfUwp;
 
+[Bindable]
 internal partial class ContentWrapper : UserControl
 {
-	[field: CompilerGenerated]
-	public FrameworkElement BackgroundElement
-	{
-		[CompilerGenerated]
-		get;
-		[CompilerGenerated]
-		private set;
-	}
+    public FrameworkElement BackgroundElement { get; private set; }
 
-	[field: CompilerGenerated]
-	public FrameworkElement PanZoom
-	{
-		[CompilerGenerated]
-		get;
-	}
+    public FrameworkElement PanZoom { get; }
 
-	[field: CompilerGenerated]
-	public Border BottomAppBarHolder
-	{
-		[CompilerGenerated]
-		get;
-	}
+    public Border BottomAppBarHolder { get; }
 
-	[field: CompilerGenerated]
-	public Border TopAppBarHolder
-	{
-		[CompilerGenerated]
-		get;
-	}
+    public Border TopAppBarHolder { get; }
 
-	[field: CompilerGenerated]
-	public Border ContentHolder
-	{
-		[CompilerGenerated]
-		get;
-	}
+    public Border ContentHolder { get; }
 
-	[field: CompilerGenerated]
-	public Rectangle HairlineBorder
-	{
-		[CompilerGenerated]
-		get;
-	}
+    public Rectangle HairlineBorder { get; }
 
-	public ContentWrapper()
+    public ContentWrapper()
 	{
-        //IL_0011: Unknown result type (might be due to invalid IL or missing references)
-        //IL_001b: Expected O, but got Unknown
         Resources.Source = new Uri("ms-appx:///__SurfaceResources__.xaml");
 
         BackgroundElement = new Rectangle
@@ -90,25 +57,34 @@ internal partial class ContentWrapper : UserControl
 				}
 			}
 		};
-		TopAppBarHolder = new Border();
+
+		TopAppBarHolder = new();
 		Grid.SetRow(TopAppBarHolder, 0);
-		ContentHolder = new Border();
+
+		ContentHolder = new();
 		Grid.SetRow(ContentHolder, 1);
-		BottomAppBarHolder = new Border();
+
+		BottomAppBarHolder = new();
 		Grid.SetRow(BottomAppBarHolder, 2);
+
 		HairlineBorder = new Rectangle
 		{
 			Stroke = new SolidColorBrush(Colors.Black),
 			StrokeThickness = 1.0
 		};
+
 		Grid.SetRowSpan(HairlineBorder, 3);
+
 		grid.Children.Add(ContentHolder);
 		grid.Children.Add(TopAppBarHolder);
 		grid.Children.Add(BottomAppBarHolder);
 		grid.Children.Add(HairlineBorder);
+
 		grid.RenderTransform = new CompositeTransform();
 		grid.Opacity = 0.0;
+
 		PanZoom = grid;
+
 		canvas.Children.Add(grid);
         Content = canvas;
 	}
@@ -125,6 +101,7 @@ internal partial class ContentWrapper : UserControl
 				Source = content,
 				Path = new PropertyPath("(Page.Background)")
 			};
+
 			ContentHolder.SetBinding(Border.BackgroundProperty, binding);
 		}
 	}

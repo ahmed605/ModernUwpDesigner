@@ -2,40 +2,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Markup;
 
 namespace XSurfUwp;
 
+[Bindable]
 public partial class DesignInstance : MarkupExtension
 {
-	[field: CompilerGenerated]
-	public Type Type
-	{
-		[CompilerGenerated]
-		get;
-		[CompilerGenerated]
-		private set;
-	}
+    public Type Type { get; private set; }
 
-	[field: CompilerGenerated]
-	public bool IsDesignTimeCreatable
-	{
-		[CompilerGenerated]
-		get;
-		[CompilerGenerated]
-		set;
-	}
+    public bool IsDesignTimeCreatable { get; set; }
 
-	[field: CompilerGenerated]
-	public bool CreateList
-	{
-		[CompilerGenerated]
-		get;
-		[CompilerGenerated]
-		set;
-	}
+    public bool CreateList { get; set; }
 
-	public void SetTypeValue(object value)
+    public void SetTypeValue(object value)
 	{
 		if (value is string text)
 		{
@@ -55,6 +36,7 @@ public partial class DesignInstance : MarkupExtension
 		{
 			return null;
 		}
+
 		object obj;
 		if (!CreateList)
 		{
@@ -72,6 +54,7 @@ public partial class DesignInstance : MarkupExtension
 				}
 			}
 		}
+
 		return obj;
 	}
 }

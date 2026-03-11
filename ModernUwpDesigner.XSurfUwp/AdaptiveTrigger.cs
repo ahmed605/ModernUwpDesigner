@@ -4,6 +4,7 @@ using Windows.UI.Xaml.Data;
 
 namespace XSurfUwp;
 
+[Bindable]
 public partial class AdaptiveTrigger : StateTriggerBase
 {
 	public static DependencyProperty MinWindowWidthProperty = DependencyProperty.Register("MinWindowWidth", typeof(double), typeof(AdaptiveTrigger), new PropertyMetadata(-1.0, OnPropertyChanged));
@@ -56,6 +57,7 @@ public partial class AdaptiveTrigger : StateTriggerBase
 			Source = Application.Current.Local,
 			Path = new PropertyPath("DeviceSize")
 		};
+
 		BindingOperations.SetBinding(this, DeviceSizeProperty, binding);
 	}
 

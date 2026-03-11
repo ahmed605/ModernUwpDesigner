@@ -1,51 +1,41 @@
 ﻿// TODO: Cleanup
 
-using Microsoft.System;
 using System;
+using Microsoft.System;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Microsoft.VisualStudio.XSurface.Common;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Markup;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Shapes;
 using WinRT;
-using XSurfUwp.XSurfUwp_XamlTypeInfo;
-using Activator = System.Activator;
 
 namespace XSurfUwp
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default <see cref="Application"/> class.
     /// </summary>
-    public sealed partial class Application : Windows.UI.Xaml.Application, ITapBridge, IXamlMetadataProvider
+    [Bindable]
+    public sealed partial class Application : Windows.UI.Xaml.Application, ITapBridge
     {
         private readonly ThreadLocal<ThreadLocalApp> localApp = new(() => new ThreadLocalApp());
+        private readonly XamlMetadataProvider provider = new();
+        private static ContentWrapper wrapper;
+        private static Application current;
 
-        private UserApplicationInfo userApplicationInfo;
+        public new static Application Current => current;
 
-        private XamlTypeInfoProvider _provider;
+        internal static ContentWrapper ContentWrapper => wrapper;
 
-        private object userAppTypeInfoProvider;
-
-        private IXamlMetadataProvider xamlMetadataProvider;
-
-        private bool metaDataRetrieveAttempted;
-
-        public new static Application Current => (Application)Windows.UI.Xaml.Application.Current;
-
-        internal static ContentWrapper ContentWrapper => (ContentWrapper)Window.Current.Content;
-
-#nullable disable
         public ThreadLocalApp Local => localApp.Value;
 
         /// <summary>
@@ -54,13 +44,15 @@ namespace XSurfUwp
         /// </summary>
         public Application()
         {
-            //MessageBox(0, "Attach", "Attach", 0);
+            //NativeMethods.MessageBox(0, "Attach", "Attach", 0);
 
+            current = this;
+
+            AddOtherProvider(provider);
             InitializeComponent();
 
             Suspending += OnSuspending;
         }
-#nullable restore
 
         static Application()
         {
@@ -68,37 +60,20 @@ namespace XSurfUwp
             ReadProjectInfo();
         }
 
-        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
-
         /// <inheritdoc/>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            SetUserApplicationInfoFromArgs(e.Arguments);
+            provider.SetUserApplicationInfoFromArgs(e.Arguments);
+
             if (!e.PrelaunchActivated)
             {
                 var window = Window.Current;
-                window.Content = new ContentWrapper();
+                
+                wrapper = new();
+                window.Content = wrapper;
                 window.Activate();
 
                 SynchronizationContext.SetSynchronizationContext(new CoreDispatcherSynchronizationContext(window.Dispatcher));
-            }
-        }
-
-        private void SetUserApplicationInfoFromArgs(string args)
-        {
-            if (!string.IsNullOrEmpty(args))
-            {
-                string[] array = args.Split(';', (StringSplitOptions)0);
-                if (array.Length == 3)
-                {
-                    userApplicationInfo = new UserApplicationInfo
-                    {
-                        UserApplicationProjectName = array[0],
-                        UserApplicationFullAssemblyName = array[1],
-                        UserApplicationRootNamespace = array[2]
-                    };
-                }
             }
         }
 
@@ -208,7 +183,6 @@ namespace XSurfUwp
 
         public bool TrySerialize(object obj, out string typeName, out string value, out bool isValueType)
         {
-#nullable disable
             Type type = obj?.GetType();
             if (type == typeof(DependencyObject))
             {
@@ -248,7 +222,6 @@ namespace XSurfUwp
             value = string.Empty;
             isValueType = false;
             return false;
-#nullable restore
         }
 
         private static void SuppressAggressiveDebugAssert()
@@ -295,159 +268,13 @@ namespace XSurfUwp
             {
                 storageFile = null;
             }
+
             if (storageFile != null)
             {
                 IAsyncOperation<string> asyncOperation = FileIO.ReadTextAsync(storageFile);
                 asyncOperation.AsTask().Wait();
                 ProjectInfo.InfoStore = asyncOperation.GetResults();
             }
-        }
-
-        public IXamlType GetXamlType(Type type)
-        {
-            _provider ??= new XamlTypeInfoProvider();
-            return _provider.GetXamlTypeByType(type) ?? GetUserAppXamlType(type);
-        }
-
-        public IXamlType GetXamlType(string fullName)
-        {
-            _provider ??= new XamlTypeInfoProvider();
-            return _provider.GetXamlTypeByName(fullName) ?? GetUserAppXamlType(fullName);
-        }
-
-        public XmlnsDefinition[] GetXmlnsDefinitions()
-        {
-            return Array.Empty<XmlnsDefinition>();
-        }
-
-        private void EnsureUserAppIXMP()
-        {
-            if (metaDataRetrieveAttempted)
-                return;
-
-            metaDataRetrieveAttempted = true;
-
-            UserApplicationInfo userApplicationInfo = GetUserApplicationInfo();
-            if (userApplicationInfo is null)
-                return;
-
-            string className = userApplicationInfo.UserApplicationRootNamespace + "." + userApplicationInfo.UserApplicationProjectName + "_XamlTypeInfo.XamlMetaDataProvider";
-            xamlMetadataProvider = LoadUserAppIXMP(userApplicationInfo.UserApplicationFullAssemblyName, className);
-            if (xamlMetadataProvider is null)
-            {
-                string className2 = userApplicationInfo.UserApplicationRootNamespace + ".XamlMetaDataProvider";
-                xamlMetadataProvider = LoadUserAppIXMP(userApplicationInfo.UserApplicationFullAssemblyName, className2);
-                if (xamlMetadataProvider is null)
-                {
-                    string typeName = userApplicationInfo.UserApplicationRootNamespace + "." + userApplicationInfo.UserApplicationProjectName + "_XamlTypeInfo.XamlTypeInfoProvider";
-                    userAppTypeInfoProvider = LoadUserAppIXMPReflection(userApplicationInfo.UserApplicationFullAssemblyName, typeName);
-                }
-            }
-        }
-
-        private static IXamlMetadataProvider LoadUserAppIXMP(string assemblyName, string className)
-        {
-            try
-            {
-                var factory = (WinRT.Interop.IActivationFactory)ActivationFactory.Get(className);
-                object instance = factory.ActivateInstance();
-                return instance as IXamlMetadataProvider;
-            }
-            catch
-            {
-                return (IXamlMetadataProvider)LoadUserAppIXMPReflection(assemblyName, className);
-            }
-        }
-
-        // TODO: Cleanup
-        private static object LoadUserAppIXMPReflection(string assemblyName, string typeName)
-        {
-            try
-            {
-                Assembly val = Assembly.Load(new AssemblyName(assemblyName));
-                return Activator.CreateInstance(val.GetType(typeName));
-            }
-            catch (Exception)
-            {
-                try
-                {
-                    Assembly assembly = Assembly.LoadFrom($"{assemblyName.Split(',').FirstOrDefault()}.dll");
-                    return Activator.CreateInstance(assembly.GetType(typeName));
-                }
-                catch
-                {
-                    try
-                    {
-                        Assembly assembly = Assembly.LoadFrom($"{assemblyName.Split(',').FirstOrDefault()}.Projection.dll");
-                        return Activator.CreateInstance(assembly.GetType(typeName));
-                    } catch { }
-                }
-
-                return null;
-            }
-        }
-
-        public IXamlType GetUserAppXamlType(Type type)
-        {
-            EnsureUserAppIXMP();
-
-            if (userAppTypeInfoProvider is not null)
-            {
-                return userAppTypeInfoProvider.GetType().GetRuntimeMethod("GetXamlTypeByType", [typeof(Type)]).Invoke(userAppTypeInfoProvider, [type]) as IXamlType;
-            }
-
-            if (xamlMetadataProvider is not null)
-            {
-                return xamlMetadataProvider.GetXamlType(type);
-            }
-
-            return null;
-        }
-
-        public IXamlType GetUserAppXamlType(string fullName)
-        {
-            EnsureUserAppIXMP();
-
-            if (userAppTypeInfoProvider is not null)
-            {
-                return userAppTypeInfoProvider.GetType().GetRuntimeMethod("GetXamlTypeByName", [typeof(string)]).Invoke(userAppTypeInfoProvider, [fullName]) as IXamlType;
-            }
-
-            if (xamlMetadataProvider is not null)
-            {
-                return xamlMetadataProvider.GetXamlType(fullName);
-            }
-
-            return null;
-        }
-
-        private UserApplicationInfo GetUserApplicationInfo()
-        {
-            if (userApplicationInfo == null)
-            {
-                StorageFile storageFile = null;
-                try
-                {
-                    StorageFolder installedLocation = Package.Current.InstalledLocation;
-                    IAsyncOperation<StorageFile> fileAsync = installedLocation.GetFileAsync("UserApplicationInfo.txt");
-                    fileAsync.AsTask().Wait();
-                    storageFile = fileAsync.GetResults();
-                }
-                catch (Exception ex) when (ex is AggregateException || ex is FileNotFoundException)
-                {
-                }
-                if (storageFile != null)
-                {
-                    IAsyncOperation<string> asyncOperation = FileIO.ReadTextAsync(storageFile);
-                    asyncOperation.AsTask().Wait();
-                    string results = asyncOperation.GetResults();
-                    if (results != null)
-                    {
-                        SetUserApplicationInfoFromArgs(results);
-                    }
-                }
-            }
-            return userApplicationInfo;
         }
     }
 

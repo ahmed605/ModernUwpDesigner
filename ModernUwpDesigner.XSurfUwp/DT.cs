@@ -1,16 +1,21 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
 using WinRT;
 
 namespace XSurfUwp;
 
-public static class DT
+[Bindable]
+public sealed partial class DT
 {
+	private DT() { }
+
+	public Uri DummyUriForXamlTypeInfoMetadata { get; private set; }
+
 	public static readonly DependencyProperty RootWidthProperty = DependencyProperty.RegisterAttached("RootWidth", typeof(double), typeof(DT), new PropertyMetadata(0.0 / 0.0, WidthPropertyChangedCallback));
 
 	public static readonly DependencyProperty DesignWidthProperty = DependencyProperty.RegisterAttached("DesignWidth", typeof(double), typeof(DT), new PropertyMetadata(0.0 / 0.0, WidthPropertyChangedCallback));
@@ -74,10 +79,14 @@ public static class DT
 	public static readonly DependencyProperty DesignIsZoomedInViewActiveProperty = DependencyProperty.RegisterAttached("DesignIsZoomedInViewActive", typeof(bool), typeof(DT), new PropertyMetadata(true));
 
 	public static readonly DependencyProperty RuntimeIsZoomedInViewActiveProperty = DependencyProperty.RegisterAttached("RuntimeIsZoomedInViewActive", typeof(bool), typeof(DT), new PropertyMetadata(true));
+	
+	public static readonly DependencyProperty ShouldDisableImplicitStyleProperty = DependencyProperty.RegisterAttached("ShouldDisableImplicitStyle", typeof(bool), typeof(DependencyObject), new(false));
+	
+	public static readonly DependencyProperty ResourceDictionarySourceProperty = DependencyProperty.RegisterAttached("ResourceDictionarySource", typeof(string), typeof(DependencyObject), new(null));
 
 	[DllImport("Microsoft.VisualStudio.DesignTools.UwpTap.dll")]
 	[return: MarshalAs(UnmanagedType.Error)]
-	public static extern int UpdateResourceDictionarySource(nint dependencyObject, [MarshalAs(UnmanagedType.LPWStr)] string newSource);
+	private static extern int UpdateResourceDictionarySource(nint dependencyObject, [MarshalAs(UnmanagedType.LPWStr)] string newSource);
 
 	public static void SetRootWidth(DependencyObject dependencyObject, double value)
 	{
@@ -378,14 +387,27 @@ public static class DT
 		{
 			Marshal.ThrowExceptionForHR(num);
 		}
-	}
 
-	public static void SetShouldDisableImplicitStyle(FrameworkElement element, bool value)
+		resourceDictionary.SetValue(ResourceDictionarySourceProperty, value);
+    }
+
+    public static string GetResourceDictionarySource(ResourceDictionary resourceDictionary)
+    {
+		return (string)resourceDictionary.GetValue(ResourceDictionarySourceProperty);
+    }
+
+    public static void SetShouldDisableImplicitStyle(FrameworkElement element, bool value)
 	{
 		ImplicitStyleSuppressor.SuppressImplicitStyle(element, value);
+		element.SetValue(ShouldDisableImplicitStyleProperty, value);
 	}
 
-	public static void SetZoomedInViewActive(DependencyObject dependencyObject, bool value)
+    public static bool GetShouldDisableImplicitStyle(FrameworkElement element)
+    {
+		return (bool)element.GetValue(ShouldDisableImplicitStyleProperty);
+    }
+
+    public static void SetZoomedInViewActive(DependencyObject dependencyObject, bool value)
 	{
 		dependencyObject.SetValue(IsZoomedInViewActiveProperty, value);
 	}
@@ -427,30 +449,36 @@ public static class DT
 
 	private static void UpdateWidthOrHeight(DependencyObject d, DependencyProperty propertyToSet, DependencyProperty rootProperty, DependencyProperty designProperty, DependencyProperty runtimeProperty)
 	{
-		double num = 0.0 / 0.0;
-		if (ReadPropertyValue(d, designProperty) != DependencyProperty.UnsetValue)
-		{
-			num = (double)d.GetValue(designProperty);
-		}
-		if (double.IsNaN(num) && ReadPropertyValue(d, runtimeProperty) != DependencyProperty.UnsetValue)
-		{
-			num = (double)d.GetValue(runtimeProperty);
-		}
-		if (double.IsNaN(num) && ReadPropertyValue(d, rootProperty) != DependencyProperty.UnsetValue)
-		{
-			num = (double)d.GetValue(rootProperty);
-		}
-		if (double.IsNaN(num))
-		{
-			d.ClearValue(propertyToSet);
-			return;
-		}
-		if (string.Equals(d.GetType().FullName, "Windows.UI.Xaml.Controls.PersonPicture") && num < 0.5)
-		{
-			num = 0.5;
-		}
-		d.SetValue(propertyToSet, num);
-	}
+        double num = double.NaN;
+
+        if (ReadPropertyValue(d, designProperty) != DependencyProperty.UnsetValue)
+        {
+            num = (double)d.GetValue(designProperty);
+        }
+
+        if (double.IsNaN(num) && ReadPropertyValue(d, runtimeProperty) != DependencyProperty.UnsetValue)
+        {
+            num = (double)d.GetValue(runtimeProperty);
+        }
+
+        if (double.IsNaN(num) && ReadPropertyValue(d, rootProperty) != DependencyProperty.UnsetValue)
+        {
+            num = (double)d.GetValue(rootProperty);
+        }
+
+        if (double.IsNaN(num))
+        {
+            d.ClearValue(propertyToSet);
+            return;
+        }
+
+        if (string.Equals(d.GetType().FullName, "Windows.UI.Xaml.Controls.PersonPicture") && num < 0.5)
+        {
+            num = 0.5;
+        }
+
+        d.SetValue(propertyToSet, num);
+    }
 
     [DynamicWindowsRuntimeCast(typeof(Selector))]
     private static void SelectedIndexPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -480,63 +508,69 @@ public static class DT
     [DynamicWindowsRuntimeCast(typeof(Visibility))]
     private static void UpdateVisibility(DependencyObject d)
 	{
-		double num = GetRuntimeOpacity(d);
-		Visibility visibility = GetRuntimeVisibility(d);
-		bool flag = GetRuntimeIsHitTestVisible(d);
-		bool isHidden = GetIsHidden(d);
-		if (GetIsTextEditing(d))
-		{
-			num = 0.0;
-		}
-		if (isHidden && visibility != Visibility.Collapsed)
-		{
-			if (d is Popup)
-			{
-				visibility = Visibility.Collapsed;
-			}
-			else
-			{
-				num = 0.0;
-				flag = false;
-			}
-		}
-		double num2 = (double)d.GetValue(UIElement.OpacityProperty);
-		Visibility visibility2 = (Visibility)d.GetValue(UIElement.VisibilityProperty);
-		bool flag2 = (bool)d.GetValue(UIElement.IsHitTestVisibleProperty);
-		if (num2 != num)
-		{
-			if (num == 1.0 && ReadPropertyValue(d, RuntimeOpacityProperty) == DependencyProperty.UnsetValue)
-			{
-				d.ClearValue(UIElement.OpacityProperty);
-			}
-			else
-			{
-				d.SetValue(UIElement.OpacityProperty, num);
-			}
-		}
-		if (visibility2 != visibility)
-		{
-			if (visibility == Visibility.Visible && ReadPropertyValue(d, RuntimeVisibilityProperty) == DependencyProperty.UnsetValue)
-			{
-				d.ClearValue(UIElement.VisibilityProperty);
-			}
-			else
-			{
-				d.SetValue(UIElement.VisibilityProperty, visibility);
-			}
-		}
-		if (flag2 != flag)
-		{
-			if (flag && ReadPropertyValue(d, RuntimeIsHitTestVisibleProperty) == DependencyProperty.UnsetValue)
-			{
-				d.ClearValue(UIElement.IsHitTestVisibleProperty);
-			}
-			else
-			{
-				d.SetValue(UIElement.IsHitTestVisibleProperty, flag);
-			}
-		}
-	}
+        double num = GetRuntimeOpacity(d);
+        Visibility visibility = GetRuntimeVisibility(d);
+        bool flag = GetRuntimeIsHitTestVisible(d);
+        bool isHidden = GetIsHidden(d);
+
+        if (GetIsTextEditing(d))
+        {
+            num = 0.0;
+        }
+
+        if (isHidden && visibility != Visibility.Collapsed)
+        {
+            if (d is Popup)
+            {
+                visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                num = 0.0;
+                flag = false;
+            }
+        }
+
+        double num2 = (double)d.GetValue(UIElement.OpacityProperty);
+        Visibility visibility2 = (Visibility)d.GetValue(UIElement.VisibilityProperty);
+        bool flag2 = (bool)d.GetValue(UIElement.IsHitTestVisibleProperty);
+
+        if (num2 != num)
+        {
+            if (num == 1.0 && ReadPropertyValue(d, RuntimeOpacityProperty) == DependencyProperty.UnsetValue)
+            {
+                d.ClearValue(UIElement.OpacityProperty);
+            }
+            else
+            {
+                d.SetValue(UIElement.OpacityProperty, num);
+            }
+        }
+
+        if (visibility2 != visibility)
+        {
+            if (visibility == Visibility.Visible && ReadPropertyValue(d, RuntimeVisibilityProperty) == DependencyProperty.UnsetValue)
+            {
+                d.ClearValue(UIElement.VisibilityProperty);
+            }
+            else
+            {
+                d.SetValue(UIElement.VisibilityProperty, visibility);
+            }
+        }
+
+        if (flag2 != flag)
+        {
+            if (flag && ReadPropertyValue(d, RuntimeIsHitTestVisibleProperty) == DependencyProperty.UnsetValue)
+            {
+                d.ClearValue(UIElement.IsHitTestVisibleProperty);
+            }
+            else
+            {
+                d.SetValue(UIElement.IsHitTestVisibleProperty, flag);
+            }
+        }
+    }
 
 	private static void UseLayoutRoundingChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
 	{

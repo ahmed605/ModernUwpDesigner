@@ -6,6 +6,7 @@ using WinRT;
 
 namespace XSurfUwp;
 
+[Bindable]
 public sealed partial class ImplicitStyleSuppressor : DependencyObject, IDisposable
 {
 	private static readonly DependencyProperty styleSuppressorProperty = DependencyProperty.RegisterAttached("StyleSuppressor", typeof(ImplicitStyleSuppressor), typeof(ImplicitStyleSuppressor), new PropertyMetadata(null));

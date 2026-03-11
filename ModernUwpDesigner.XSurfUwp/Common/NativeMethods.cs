@@ -33,20 +33,23 @@ internal static class NativeMethods
 	public static readonly nint HWND_TOP = new(0);
 
 	[DllImport("user32.dll", SetLastError = true)]
-	[return: MarshalAs((UnmanagedType)2)]
+	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool SetProcessDpiAwarenessContext(nint dpiContext);
 
 	[DllImport("shcore.dll")]
 	public static extern int SetProcessDpiAwareness(PROCESS_DPI_AWARENESS value);
 
 	[DllImport("user32.dll")]
-	[return: MarshalAs((UnmanagedType)2)]
+	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool SetProcessDPIAware();
 
 	[DllImport("user32.dll", SetLastError = true)]
-	[return: MarshalAs((UnmanagedType)2)]
+	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
 	[DllImport("User32")]
 	public static extern nint SetParent(nint hWnd, nint hWndParent);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
 }

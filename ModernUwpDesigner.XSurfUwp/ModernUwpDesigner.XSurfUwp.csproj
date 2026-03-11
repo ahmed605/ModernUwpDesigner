@@ -25,27 +25,38 @@
     <_SupportEmbedFileResources>false</_SupportEmbedFileResources>
     <_SupportXbfAsEmbedFileResources>false</_SupportXbfAsEmbedFileResources>
     <ProjectPriFileName>__XSURF__DO_NOT_USE_THIS_PRI_FILE__XSURF__.pri</ProjectPriFileName>
+    <XamlCodeGenerationControlFlags>DoNotGenerateOtherProviders</XamlCodeGenerationControlFlags>
+    <SuppressXamlWarnings>1004</SuppressXamlWarnings>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
     
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.3.0-prerelease.251115.2" />
   </ItemGroup>
+    
+  <ItemGroup>
+    <ProjectReference Include="..\ModernUwpDesigner.XSurfUwp.OtherProvidersLib\ModernUwpDesigner.XSurfUwp.OtherProvidersLib.csproj">
+	  <ExcludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</ExcludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+      <Private>false</Private>
+	</ProjectReference>
+  </ItemGroup>
 
   <Target Name="CopyXbfAndAppxManifestToPublishDir" AfterTargets="_CreateFinalAppxManifestItem">
-	<PropertyGroup>
-	  <__AppxManifestFile>%(FinalAppxManifest.Identity)</__AppxManifestFile>
-	</PropertyGroup>
+    <PropertyGroup>
+      <__AppxManifestFile>%(FinalAppxManifest.Identity)</__AppxManifestFile>
+    </PropertyGroup>
 
     <ItemGroup>
       <ResolvedFileToPublish Include="@(_CustomOutputGroupForPackagingOutput)" Condition="'%(Extension)' == '.xbf'">
         <RelativePath>%(Filename)%(Extension)</RelativePath>
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-	  </ResolvedFileToPublish>
-	
-	  <ResolvedFileToPublish Include="$(__AppxManifestFile)">
+      </ResolvedFileToPublish>
+    
+      <ResolvedFileToPublish Include="$(__AppxManifestFile)">
         <RelativePath>AppxManifest.xml</RelativePath>
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-	  </ResolvedFileToPublish>
+      </ResolvedFileToPublish>
     </ItemGroup>
   </Target>
 </Project>
