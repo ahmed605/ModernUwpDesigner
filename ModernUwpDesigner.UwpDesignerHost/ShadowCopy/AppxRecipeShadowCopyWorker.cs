@@ -147,20 +147,39 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
     {
         try
         {
-            if (manifestPath != null)
+            if (string.IsNullOrEmpty(manifestPath))
             {
-                PackageManifestUpdater packageManifestUpdater = new PackageManifestUpdater(manifestPath);
-                Version runtimePlatformVersion = GetRuntimePlatformVersion();
-                if (!packageManifestUpdater.CheckTargetDeviceFamily("Windows.Universal", runtimePlatformVersion) && !packageManifestUpdater.CheckTargetDeviceFamily("Windows.Desktop", runtimePlatformVersion))
-                {
-                    base.SurfaceInfo.PlatformOnlyReason = HostPlatformOnlyReason.UnsupportedTargetDeviceFamily;
-                    return false;
-                }
+                Logger.Debug("Manifest path is null or empty, cannot validate manifest", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+                base.SurfaceInfo.PlatformOnlyReason = HostPlatformOnlyReason.CouldNotParseRecipe;
+                return false;
             }
+
+            if (!File.Exists(manifestPath))
+            {
+                Logger.Debug($"Manifest file does not exist at path: {manifestPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+                base.SurfaceInfo.PlatformOnlyReason = HostPlatformOnlyReason.CouldNotParseRecipe;
+                return false;
+            }
+
+            Logger.Debug($"Validating manifest at: {manifestPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+            PackageManifestUpdater packageManifestUpdater = new PackageManifestUpdater(manifestPath);
+            Version runtimePlatformVersion = GetRuntimePlatformVersion();
+
+            if (!packageManifestUpdater.CheckTargetDeviceFamily("Windows.Universal", runtimePlatformVersion) && 
+                !packageManifestUpdater.CheckTargetDeviceFamily("Windows.Desktop", runtimePlatformVersion))
+            {
+                Logger.Debug($"Manifest does not support required device family. Runtime version: {runtimePlatformVersion}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+                base.SurfaceInfo.PlatformOnlyReason = HostPlatformOnlyReason.UnsupportedTargetDeviceFamily;
+                return false;
+            }
+
+            Logger.Debug("Manifest validation successful", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
         }
         catch (Exception ex) when (ex is XmlException || ex is IOException || ex is UnauthorizedAccessException)
         {
-            Logger.Debug("Failed to check manifest file: " + ex.Message, "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+            Logger.Debug($"Failed to check manifest file at '{manifestPath}': {ex.Message}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+            base.SurfaceInfo.PlatformOnlyReason = HostPlatformOnlyReason.CouldNotParseRecipe;
+            return false;
         }
         return true;
     }
@@ -494,8 +513,27 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
         }
         else if (string.Equals(node.Name, "AppXManifest", StringComparison.OrdinalIgnoreCase))
         {
-            originalManifestPath = Uri.UnescapeDataString(node.Attributes["Include"].Value);
-            appxRecipeCopyTokens.Add(CreateCopyToken(node, PackageManifestUpdater.originalManifestExtension));
+            string rawManifestPath = Uri.UnescapeDataString(node.Attributes["Include"].Value);
+            Logger.Debug($"Found AppXManifest node in recipe with path: {rawManifestPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+
+            // Resolve the manifest path with fallback logic
+            originalManifestPath = ResolveManifestPath(rawManifestPath);
+
+            if (string.IsNullOrEmpty(originalManifestPath))
+            {
+                Logger.Debug($"WARNING: Failed to resolve manifest path from recipe: {rawManifestPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+                // Still use the raw path for the copy token to maintain backward compatibility
+                originalManifestPath = rawManifestPath;
+            }
+            else
+            {
+                Logger.Debug($"Successfully resolved manifest path to: {originalManifestPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+            }
+
+            // Use the resolved (absolute) path as the copy token source so the file can
+            // actually be found when it lives in a separate App Packaging Project directory.
+            string destination = node.FirstChild.InnerText + PackageManifestUpdater.originalManifestExtension;
+            appxRecipeCopyTokens.Add(new FileCopyToken(originalManifestPath, destination));
         }
         foreach (XmlNode childNode in node.ChildNodes)
         {
@@ -675,6 +713,90 @@ internal class AppxRecipeShadowCopyWorker : UwpHostShadowCopyWorker
         catch (UnauthorizedAccessException)
         {
         }
+    }
+
+    private string ResolveManifestPath(string manifestPathFromRecipe)
+    {
+        if (string.IsNullOrEmpty(manifestPathFromRecipe))
+        {
+            Logger.Debug("Manifest path from recipe is null or empty", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+            return null;
+        }
+
+        Logger.Debug($"Raw manifest path from recipe: {manifestPathFromRecipe}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+
+        // If absolute path and exists, use it directly
+        if (Path.IsPathRooted(manifestPathFromRecipe) && File.Exists(manifestPathFromRecipe))
+        {
+            Logger.Debug($"Manifest found at absolute path: {manifestPathFromRecipe}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+            return manifestPathFromRecipe;
+        }
+
+        // Try resolving relative to the target assembly directory (XAML project output)
+        if (!string.IsNullOrEmpty(targetAssemblyPath))
+        {
+            string assemblyDir = Path.GetDirectoryName(targetAssemblyPath);
+            string resolvedPath = Path.Combine(assemblyDir, manifestPathFromRecipe);
+            if (File.Exists(resolvedPath))
+            {
+                Logger.Debug($"Manifest resolved relative to target assembly: {resolvedPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+                return resolvedPath;
+            }
+            Logger.Debug($"Manifest not found at: {resolvedPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+        }
+
+        // Try resolving relative to the recipe file directory (packaging project output)
+        if (!string.IsNullOrEmpty(AppxRecipePath))
+        {
+            string recipeDir = Path.GetDirectoryName(AppxRecipePath);
+            string resolvedPath = Path.Combine(recipeDir, manifestPathFromRecipe);
+            if (File.Exists(resolvedPath))
+            {
+                Logger.Debug($"Manifest resolved relative to recipe directory: {resolvedPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+                return resolvedPath;
+            }
+            Logger.Debug($"Manifest not found at: {resolvedPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+
+            // Try going up one directory from recipe (in case recipe is in bin/x64/Debug/)
+            string recipeParentDir = Path.GetDirectoryName(recipeDir);
+            if (!string.IsNullOrEmpty(recipeParentDir))
+            {
+                resolvedPath = Path.Combine(recipeParentDir, manifestPathFromRecipe);
+                if (File.Exists(resolvedPath))
+                {
+                    Logger.Debug($"Manifest resolved relative to recipe parent directory: {resolvedPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+                    return resolvedPath;
+                }
+            }
+        }
+
+        // Try finding Package.appxmanifest in solution by searching the application project
+        IHostProject appProject = base.HostProject.FindApplicationProject();
+        if (appProject != null)
+        {
+            string appProjectPath = appProject.ProjectPath;
+            if (!string.IsNullOrEmpty(appProjectPath))
+            {
+                string projectDir = Path.GetDirectoryName(appProjectPath);
+                string resolvedPath = Path.Combine(projectDir, manifestPathFromRecipe);
+                if (File.Exists(resolvedPath))
+                {
+                    Logger.Debug($"Manifest resolved relative to application project: {resolvedPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+                    return resolvedPath;
+                }
+
+                // Try looking for Package.appxmanifest directly in the app project directory
+                string directManifestPath = Path.Combine(projectDir, "Package.appxmanifest");
+                if (File.Exists(directManifestPath))
+                {
+                    Logger.Debug($"Manifest found directly in application project: {directManifestPath}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+                    return directManifestPath;
+                }
+            }
+        }
+
+        Logger.Debug($"Failed to resolve manifest path: {manifestPathFromRecipe}", "D:\\dbs\\el\\ddvsm\\src\\Xaml\\Designer\\Source\\UwpDesignerHost\\ShadowCopy\\AppxRecipeShadowCopyWorker.cs");
+        return null;
     }
 
     private string GetApplicationActivationArguments()
