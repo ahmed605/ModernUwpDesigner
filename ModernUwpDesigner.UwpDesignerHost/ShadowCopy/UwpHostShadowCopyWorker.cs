@@ -95,12 +95,15 @@ internal abstract class UwpHostShadowCopyWorker : IHostShadowCopyWorker
         //dictionary.Add("UwpSurface.runtimeconfig.json", "UwpSurface.runtimeconfig.json");
         dictionary.Add("AppxManifest.xml", "AppxManifest.xml");
 
-        if (!isApplication)
-        {
-            dictionary.Add("Microsoft.Windows.SDK.NET.dll", "Microsoft.Windows.SDK.NET.dll");
-            dictionary.Add("Microsoft.Windows.UI.Xaml.dll", "Microsoft.Windows.UI.Xaml.dll");
-            dictionary.Add("WinRT.Runtime.dll", "WinRT.Runtime.dll");
-        }
+        // Always copy the WinRT host DLLs from the surface process publish directory.
+        // These are required by UwpSurface.exe regardless of whether the user's project is
+        // an application or a library. Previously these were skipped for application projects
+        // under the assumption the recipe copy would provide them, but that assumption breaks
+        // when an App Packaging Project is used (recipe validation fails → PlatformOnly path).
+        dictionary.Add("Microsoft.Windows.SDK.NET.dll", "Microsoft.Windows.SDK.NET.dll");
+        dictionary.Add("Microsoft.Windows.UI.Xaml.dll", "Microsoft.Windows.UI.Xaml.dll");
+        dictionary.Add("WinRT.Runtime.dll", "WinRT.Runtime.dll");
+        dictionary.Add("WinRT.Host.Shim.dll", "WinRT.Host.Shim.dll");
 
         if (!hasHostFxr)
         {

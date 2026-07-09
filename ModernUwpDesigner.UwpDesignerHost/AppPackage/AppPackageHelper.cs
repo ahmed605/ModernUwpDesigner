@@ -196,6 +196,13 @@ public class AppPackageHelper : IAppPackageHelper
 			catch (FileNotFoundException)
 			{
 			}
+			catch (UnauthorizedAccessException)
+			{
+				// InstalledLocation.Path throws E_ACCESSDENIED (0x80070005) for packages
+				// that are installed in locations the current process cannot read (e.g.
+				// system packages registered for all users). Treat them the same as a
+				// missing install location — they were not created by the designer.
+			}
 			if (PackageWasCreatedByDesigner(item))
 			{
 				list.Add(new AppPackageInfo(item.Id.FullName, installLocation));

@@ -213,6 +213,14 @@ public class UwpHostPlatform : HostPlatformBase
 	protected override async Task EnsureProjectPayloadAsync(IHostProject hostProject, SurfaceProcessInfo info, CancellationToken cancelToken)
 	{
 		await base.EnsureProjectPayloadAsync(hostProject, info, cancelToken);
+
+		// VS's CleanupTaskScheduler moves old cache folders to Designer\Cache\_deleted\{name}
+		// before deleting them. On a fresh experimental instance this sub-folder does not exist
+		// yet, causing DirectoryNotFoundException when the idle-cleanup task fires.
+		// Pre-create it here: Directory.CreateDirectory is a no-op if it already exists.
+		string deletedStagingFolder = Path.Combine(ShadowCacheBaseDir, HostPlatformBase.SurfaceProcessShadowCache, "_deleted");
+		Directory.CreateDirectory(deletedStagingFolder);
+
 		IHostShadowCopyWorker shadowCopyWorker = info.ShadowCopyWorker;
 		string packageName = EnsurePackageName(info.ShadowCacheContent);
 		await shadowCopyWorker.FixupResourcePriFileAsync(packageName, cancelToken);
